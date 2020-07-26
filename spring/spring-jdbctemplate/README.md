@@ -127,7 +127,7 @@
 
 创建数据库表和实体
 
-![](./img/1.png)
+![](./assets/1.png)
 
 ```java
 package tk.deriwotua.jdbctemplate.domain;
