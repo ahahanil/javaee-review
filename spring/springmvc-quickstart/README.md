@@ -2,9 +2,105 @@
 
 ### 1.1 ApplicationContext应用上下文获取方式
 
-应用上下文对象是通过`new ClasspathXmlApplicationContext(spring配置文件);` 方式获取的，但是每次从容器中获得Bean时都要编写`new ClasspathXmlApplicationContext(spring配置文件);` ，这样的弊端是配置文件加载多次，应用上下文对象创建多次。
+```java
+package tk.deriwotua.web;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
+import tk.deriwotua.service.UserService;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class UserServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //ApplicationContext app = new ClassPathXmlApplicationContext("applicationContext.xml");
+        ServletContext servletContext = this.getServletContext();
+        //ApplicationContext app = (ApplicationContext) servletContext.getAttribute("app");
+        //ApplicationContext app = WebApplicationContextUtils.getWebApplicationContext(servletContext);
+        ApplicationContext app = WebApplicationContextUtils.getWebApplicationContext(servletContext);
+        UserService userService = app.getBean(UserService.class);
+        userService.save();
+    }
+}
+```
+
+应用上下文对象是通过`new ClasspathXmlApplicationContext(spring配置文件);` 方式获取的，但是每次请求都需要创建容器然后从容器中获得Bean时都要编写`new ClasspathXmlApplicationContext(spring配置文件);`，这样的弊端是配置文件加载多次，应用上下文对象创建多次。
 
 在Web项目中，可以使用`ServletContextListener`监听Web应用的启动，我们可以在Web应用启动时，就加载Spring的配置文件，创建应用上下文对象`ApplicationContext`，在将其存储到最大的域`servletContext域`中，这样就可以在任意位置从域中获得应用上下文`ApplicationContext`对象了。
+
+```java
+package tk.deriwotua.listener;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+
+public class ContextLoaderListener implements ServletContextListener {
+
+    public void contextInitialized(ServletContextEvent servletContextEvent) {
+        ServletContext servletContext = servletContextEvent.getServletContext();
+        //读取web.xml中的全局参数
+        String contextConfigLocation = servletContext.getInitParameter("contextConfigLocation");
+        ApplicationContext app = new ClassPathXmlApplicationContext(contextConfigLocation);
+        //将Spring的应用上下文对象存储到ServletContext域中
+        servletContext.setAttribute("app",app);
+        System.out.println("spring容器创建完毕....");
+    }
+
+    public void contextDestroyed(ServletContextEvent servletContextEvent) {
+
+    }
+}
+```
+
+然后web.xml中配置该监听器监听servlet启动
+```xml
+<!--全局初始化参数 applicationContext.xml 名称可随意不能代码里写死 可以在这里配置 -->
+<context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>applicationContext.xml</param-value>
+</context-param>
+<listener>
+    <listener-class>tk.deriwotua.listener.ContextLoaderListener</listener-class>
+</listener>
+```
+
+最后在请求中使用
+```java
+package tk.deriwotua.web;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
+import tk.deriwotua.service.UserService;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class UserServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        ServletContext servletContext = this.getServletContext();
+        ApplicationContext app = (ApplicationContext) servletContext.getAttribute("app");
+        UserService userService = app.getBean(UserService.class);
+        userService.save();
+    }
+}
+```
 
 ### 1.2 Spring提供获取应用上下文的工具
 
@@ -63,35 +159,6 @@ public class WebApplicationContextUtils {
 
 - 配置`ContextLoaderListener`监听器
 - 使用`WebApplicationContextUtils`获得应用上下文
-
-自定义`ContextLoaderListener`
-```java
-package tk.deriwotua.listener;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-
-public class ContextLoaderListener implements ServletContextListener {
-
-    public void contextInitialized(ServletContextEvent servletContextEvent) {
-        ServletContext servletContext = servletContextEvent.getServletContext();
-        //读取web.xml中的全局参数
-        String contextConfigLocation = servletContext.getInitParameter("contextConfigLocation");
-        ApplicationContext app = new ClassPathXmlApplicationContext(contextConfigLocation);
-        //将Spring的应用上下文对象存储到ServletContext域中
-        servletContext.setAttribute("app",app);
-        System.out.println("spring容器创建完毕....");
-    }
-
-    public void contextDestroyed(ServletContextEvent servletContextEvent) {
-
-    }
-}
-```
 
 
 ## 2. SpringMVC的简介
@@ -336,13 +403,46 @@ SpringMVC的开发步骤
 2.组件扫描
 
 SpringMVC基于Spring容器，所以在进行SpringMVC操作时，需要将Controller存储到Spring容器中，如果使用`@Controller`注解标注的话，就需要在`spring-mvc.xml`使用`<context:component-scan base-package="tk.deriwotua.controller"/>`进行组件扫描。
+- 组件扫描时spring各司其职springmvc就扫描springmvc所属的handler；spring就扫描spring所属的组件注解
+```xml
+<!--spring-mvc Controller的组件扫描-->
+<context:component-scan base-package="tk.deriwotua.controller"/>
+<!--扫描时如果不精确到具体的handler包 就需要使用过滤器限定扫描范围-->
+<!--下面写法与上面等效 仅仅扫描tk.deriwotua包下注解(type="annotation"指定扫描匹配类型)为@Controller的类-->
+<context:component-scan base-package="tk.deriwotua">
+    <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+</context:component-scan>
+```
 
 ### 3.4 SpringMVC的XML配置解析
 
 SpringMVC有默认组件配置，默认组件都是`DispatcherServlet.properties`配置文件中配置的，该配置文件地址`org/springframework/web/servlet/DispatcherServlet.properties`，该文件中配置了默认的视图解析器，如下：
 
 ```properties
+# Default implementation classes for DispatcherServlet's strategy interfaces.
+# Used as fallback when no matching beans are found in the DispatcherServlet context.
+# Not meant to be customized by application developers.
+
+org.springframework.web.servlet.LocaleResolver=org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver
+
+org.springframework.web.servlet.ThemeResolver=org.springframework.web.servlet.theme.FixedThemeResolver
+
+org.springframework.web.servlet.HandlerMapping=org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping,\
+	org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping
+
+org.springframework.web.servlet.HandlerAdapter=org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter,\
+	org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter,\
+	org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter
+
+org.springframework.web.servlet.HandlerExceptionResolver=org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver,\
+	org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver,\
+	org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver
+
+org.springframework.web.servlet.RequestToViewNameTranslator=org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator
+#######默认的视图解析器###########
 org.springframework.web.servlet.ViewResolver=org.springframework.web.servlet.view.InternalResourceViewResolver
+
+org.springframework.web.servlet.FlashMapManager=org.springframework.web.servlet.support.SessionFlashMapManager
 ```
 
 翻看该解析器源码，可以看到该解析器的默认设置，如下：
@@ -356,6 +456,25 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
     private Class<?> viewClass;
     private String prefix = "";  // 视图名称前缀
     private String suffix = "";  // 视图名称后缀
+}
+
+@Controller
+@RequestMapping("/user")
+public class UserController {
+
+    // 请求地址  http://localhost:8080/user/quick
+    @RequestMapping(value="/quick",method = RequestMethod.GET,params = {"username"})
+    public String save(){
+        System.out.println("Controller save running....");
+        //return "forward:/success.jsp";
+        // 有了转发前缀后就可以省略转发前缀
+        return "success.jsp";
+        // 同过 prefix/suffix 可以设置返回视图的路径
+        // prefix 在spring-mvc.xml 配置为`<property name="prefix" value="/jsp/"></property>`时
+        // 等同于 这里 return "/jsp/success.jsp";
+        // suffix 在spring-mvc.xml 配置为`<property name="suffix" value=".jsp"></property>` 时
+        // 最终这里返回简写 return "success"; 解析时会自动补全
+    }
 }
 ```
 
