@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<!--mybatis核心配置文件sqlMapConfig.xml层级关系
+    configuration 配置根标签
+    properties 属性标签
+    settings 设置标签
+    typeAliases 类型别名标签
+    typeHandlers 类型处理器标签
+    objectFactory 对象工厂标签
+    plugins 插件标签
+    environments 环境标签
+        environment 环境变量标签
+            transactionManager 事务管理器
+            dataSource 数据源
+    databaseIdProvider 数据库厂商标识
+    mappers 映射器标签-->
+<configuration>
+
+    <!--通过properties标签加载外部properties文件-->
+    <properties resource="jdbc.properties"></properties>
+
+    <!--自定义别名-->
+    <typeAliases>
+        <typeAlias type="tk.deriwotua.domain.User" alias="user"></typeAlias>
+    </typeAliases>
+
+    <!--数据源环境-->
+    <environments default="developement">
+        <environment id="developement">
+            <transactionManager type="JDBC"></transactionManager>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+    
+
+    <!--加载映射文件-->
+    <mappers>
+        <mapper resource="tk/deriwotua/mapper/UserMapper.xml"></mapper>
+    </mappers>
+
+</configuration>

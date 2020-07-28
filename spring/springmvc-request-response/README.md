@@ -816,8 +816,12 @@ public void save21(@CookieValue(value = "JSESSIONID") String jsessionId) throws 
 
     <!--配置文件上传解析器-->
     <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
-        <property name="defaultEncoding" value="UYF-8"/>
-        <property name="maxUploadSize" value="500000"/>
+        <!--上传文件总大小-->
+        <property name="maxUploadSize" value="5242800"/>
+        <!--上传单个文件的大小-->
+        <property name="maxUploadSizePerFile" value="5242800"/>
+        <!--上传文件的编码类型-->
+        <property name="defaultEncoding" value="UTF-8"/>
     </bean>
 
 </beans>
