@@ -1881,3 +1881,7 @@ java -jar springboot-quickstart-1.0-SNAPSHOT.jar
 点击 OK 之后，在项目中将发现如下内容
 
 ![JBLSpringBootAppGen4](assets/JBLSpringBootAppGen4.png)
+
+## 8. 附录 ##
+
+[springboot课件](src/main/resources/static/springboot课件.docx)
