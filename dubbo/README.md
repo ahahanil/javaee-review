@@ -305,7 +305,7 @@ Dubbo作为一个RPC框架，其最核心的功能就是要实现跨网络的远
   /**
    * 发布服务必须使用Dubbo提供的Service注解
    */
-  @Service
+  @Service(protocol = "dubbo")
   public class HelloServiceImpl implements HelloService {
       @Override
       public String sayHello(String name) {
@@ -693,16 +693,19 @@ dubbo 协议采用`单一长连接`和 `NIO 异步通讯`，**适合于小数据
 通过上面的断点调试可以看到，在HelloServiceImpl类上加入事务注解后，Spring会为此类基于JDK动态代理技术创建代理对象，创建的代理对象完整类名为`com.sun.proxy.$Proxy35`，导致Dubbo在进行包匹配时没有成功（因为我们在发布服务时扫描的包为`tk.deriwotua.service`），所以后面真正发布服务的代码没有执行。
 
 解决方式操作步骤
-- 修改`applicationContext-service.xml`配置文件，开启事务控制注解支持时指定`proxy-target-class`属性，值为true。其作用是使用cglib代理方式为Service类创建代理对象
+- 首先修改`applicationContext-service.xml`配置文件，开启事务控制注解支持时指定`proxy-target-class`属性，值为true。其作用是使用cglib代理方式为Service类创建代理对象
 
 ~~~xml
 <!--开启事务控制的注解支持-->
 <tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>
 ~~~
-
+- 此时debug调试发现代理对象包名对了
   ![17](assets/17.png)
+- 但是再次访问还是报上面那个错，无法找到服务，此时登录Dubbo管理页面发现服务确实已经发布上去了，但是为什么还是不行。进入`dubbo-provider`应用选项下发现发布上去的服务协议服务名不对`org.springframework.aop.SpringProxy`应该为`tk.deriwotua.service.HelloService`才对
 
-- 修改HelloServiceImpl类，在`@Service`注解中加入`interfaceClass`属性，值为HelloService.class，作用是指定服务的接口类型
+  ![16](assets/16.png)
+
+- 解决办法修改HelloServiceImpl类，在`@Service`注解中加入`interfaceClass`属性，值为HelloService.class，作用是指定服务的接口类型，否则会导致发布的服务接口为SpringProxy，而不是HelloService接口
 ~~~java
 package tk.deriwotua.service.impl;
 
@@ -713,7 +716,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 发布服务必须使用Dubbo提供的Service注解
  */
-@Service(interfaceClass = HelloService.class,protocol = "dubbo")
+@Service(interfaceClass = HelloService.class, protocol = "dubbo")
 @Transactional
 public class HelloServiceImpl implements HelloService {
     @Override
@@ -722,6 +725,3 @@ public class HelloServiceImpl implements HelloService {
     }
 }
 ~~~
-
-此处也是必须要修改的，否则会导致发布的服务接口为SpringProxy，而不是HelloService接口
-![16](assets/16.png)

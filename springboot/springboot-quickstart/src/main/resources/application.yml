@@ -1,0 +1,34 @@
+jdbc:
+  driverClassName: com.mysql.jdbc.Driver
+  url: jdbc:mysql://127.0.0.1:3306/springboot_test
+  username: root
+  password: root
+#加载其它配置文件
+spring:
+  profiles:
+    active: abc,def
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/springboot_test
+    username: root
+    password: root
+  redis:
+    host: localhost
+    port: 6379
+# 日志
+logging:
+  level:
+    tk.deriwotua: debug
+    org.springframework: info
+# 映射端口
+server:
+  port: 80
+# mybatis配置
+mybatis:
+  # 实体类别名包路径
+  type-aliases-package: tk.deriwotua.pojo
+  # 映射文件路径
+  # mapper-locations: classpath:mappers/*.xml
+  configuration:
+    # 控制台输出执行sql
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
