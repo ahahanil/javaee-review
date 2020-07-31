@@ -2095,3 +2095,6 @@ public class ProducerTest {
 另外；也可以在RabbitMQ的管理控制台中查看到交换机与队列的绑定
 
 ![1556074827222](assets/1556074827222.png)
+
+# 6. rabbitmq 高级特性 #
+
