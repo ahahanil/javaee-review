@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: consumer-demo
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:10086/eureka
+    # 获取服务地址列表间隔时间，默认30秒
+    registry-fetch-interval-seconds: 10
+# 启动类添加 @LoadBalanced 开启负载均衡后 spring cloud默认的策略是轮询
+# 这里可以通过配置 对应服务 user-service 的 ribbon.NFLoadBalancerRuleClassName 负载均衡策略更改默认策略
+# user-service.ribbon.NFLoadBalancerRuleClassName= com.netflix.loadbalancer.RandomRule 负载均衡策略更改为随机
+user-service:
+  ribbon:
+    # 负载均衡策略更改为随机
+    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            # 设置超时降级的时长
+            timeoutInMilliseconds: 2000
+      circuitBreaker:
+        # 触发熔断错误比例阈值，默认值50%
+        errorThresholdPercentage: 50
+        # 熔断后休眠时长，默认值5秒
+        sleepWindowInMilliseconds: 10000
+        # 熔断触发最小请求次数，默认值是20
+        requestVolumeThreshold: 10

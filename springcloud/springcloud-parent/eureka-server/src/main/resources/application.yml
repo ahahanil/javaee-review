@@ -1,0 +1,51 @@
+#server:
+#  port: ${port:10086}
+#spring:
+#  application:
+#    name: eureka-server
+#eureka:
+#  client:
+#    service-url:
+#      # eureka 服务地址，如果是集群的话；需要指定其它集群eureka地址
+#      defaultZone: http://127.0.0.1:10086/eureka
+#    # 不注册自己
+#    register-with-eureka: false
+#    # 不拉取服务
+#    fetch-registry: false
+#  server:
+#    # 服务失效剔除时间间隔，默认60秒
+#    eviction-interval-timer-in-ms: 60000
+#    # 关闭自我保护模式（默认是打开的）
+#    enable-self-preservation: false
+
+## eureka单机配置
+#server:
+#  port: 10086
+#spring:
+#  application:
+#    name: eureka-server # 应用名称，会在Eureka中作为服务的id标识（serviceId）
+#eureka:
+#  client:
+#    service-url: # EurekaServer的地址，现在是自己的地址，如果是集群，需要写其它Server的地址。
+#      defaultZone: http://127.0.0.1:10086/eureka
+#    register-with-eureka: false # 不注册自己
+#    fetch-registry: false #不拉取
+
+# eureka高可用配置
+# EurekaServer 自己也作为一个服务，注册到其它 EurekaServer 上，这样多个 EurekaServer`之间就能互相发现对方，从而形成集群
+server:
+  # ${port:xx} 写法，启动应用时可指定JVM参数，这里的这样配置就是当配置了启动参数后启动时优先使用启动参数未配置时则使用这里的默认值
+  port: ${port:10086}
+spring:
+  application:
+    # 应用名称，会在eureka中作为服务的id(serviceId)
+    name: eureka-server
+eureka:
+  client:
+    service-url:
+      # eureka服务地址；如果是集群则是其它服务器地址，后面要加/eureka
+      defaultZone: ${defaultZone:http://127.0.0.1:10086/eureka}
+      # 是否注册自己，自身不提供服务所以不注册
+      #register-with-eureka: false
+      # 是否拉取服务
+      #fetch-registry: false
