@@ -29,3 +29,33 @@ hystrix:
         sleepWindowInMilliseconds: 10000
         # 熔断触发最小请求次数，默认值是20
         requestVolumeThreshold: 10
+ribbon:
+  # 连接超时时长
+  ConnectTimeout: 1000
+  # 数据通信超时时长
+  ReadTimeout: 2000
+  # 当前服务器的重试次数
+  MaxAutoRetries: 0
+  # 重试多少次服务
+  MaxAutoRetriesNextServer: 0
+  # 是否对所有的请求方式都重试
+  OkToRetryOnAllOperations: false
+feign:
+  hystrix:
+    # 开启Feign的熔断功能
+    enabled: true
+  # 对请求和响应进行`GZIP`压缩
+  compression:
+    request:
+      # 开启请求压缩
+      enabled: true
+      # 设置压缩的数据类型
+      mime-types: text/html,application/xml,application/json
+      # 设置触发压缩的大小下限
+      min-request-size: 2048
+    response:
+      enabled: true
+# 如果使用Feign客户端 客户端在被代理时 需要额外指定Feign.Logger实例日志级别才会生效
+logging:
+  level:
+    tk.deriwotua: debug

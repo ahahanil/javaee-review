@@ -1,5 +1,7 @@
 [TOC]
 
+![](assets/SpringCloud.png)
+
 ## 0. 学习目标
 > 能够使用RestTemplate发送请求
 >

@@ -1,0 +1,66 @@
+server:
+  port: 10010
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        # 路由id，可以任意
+        - id: user-service-route
+          # 代理的服务地址 uri: http://IP:port 静态路由 地址不会变动下可写死配置
+          #uri: http://127.0.0.1:9091
+          # lb表示从eureka中获取具体服务 动态路由
+          uri: lb://user-service
+          # 路由断言： 可以匹配映射路径
+          predicates:
+            #- Path=/user/**
+            #- Path=/**
+            - Path=/api/user/**
+          filters:
+            # 添加 predicates.Path 请求路径的前缀
+            #- PrefixPath=/user
+            # StripPrefix实现 predicates.Path 映射路径中地址的去除
+            #1表示过滤1个路径，2表示两个路径，以此类推
+            - StripPrefix=1
+            # # 自定义过滤器
+            - MyParam=name
+      # 默认过滤器，对所有路由都生效
+      default-filters:
+        # 如果有多个参数多则重写一行设置不同的参数
+        - AddResponseHeader=X-Response-Foo, Bar
+        # 响应头过滤器，对输出的响应设置其头部属性名称为abc-myname，值为deriwotua；
+        - AddResponseHeader=abc-myname,deriwotua
+      globalcors:
+        corsConfigurations:
+          # 对所有访问到网关服务器的请求地址
+          '[/**]':
+            # 下面配置可以允许来自 `http://docs.spring.io` 的get请求方式跨域获取服务数据
+            # allowedOrigins指定允许访问的服务器地址
+            # allowedOrigins: * # 这种写法或者下面的都可以，*表示全部
+            allowedOrigins:
+              - "http://docs.spring.io"
+            allowedMethods:
+              - GET
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:10086/eureka
+  instance:
+    prefer-ip-address: true
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 6000
+ribbon:
+  # 连接超时时长
+  ConnectTimeout: 1000
+  # 数据通信超时时长
+  ReadTimeout: 2000
+  # 当前服务器的重试次数
+  MaxAutoRetries: 0
+  # 重试多少次服务
+  MaxAutoRetriesNextServer: 0
