@@ -1377,6 +1377,6 @@ JAVA_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=99
 
 [垃圾回收&相关算法&垃圾收集器&GC日志](./jvm-gc-gcalgorithm.md)
 
-## 8. tomcat优化&底层字节码&编码优化
+## 8. tomcat优化&底层代码指令&编码优化
 
-[tomcat优化&底层字节码&编码优化](./jvm-tomcat8-class.md)
+[tomcat优化&底层代码指令&编码优化](./jvm-tomcat8-class.md)

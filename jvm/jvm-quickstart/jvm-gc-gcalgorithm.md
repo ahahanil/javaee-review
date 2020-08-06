@@ -569,4 +569,4 @@ GC Easy是一款在线的可视化工具，易用、功能强大，网站：`htt
 
 ## 5. tomcat优化&底层字节码&编码优化
 
-[tomcat优化&底层字节码&编码优化](./jvm-tomcat8-class.md)
+[tomcat优化&底层代码指令&编码优化](./jvm-tomcat8-class.md)
