@@ -1,0 +1,276 @@
+		/* 卡片圆角处理*/
+
+		.tg3-eventanalysis .boxshadow {
+			border-radius: 5px;
+			position: relative;
+			padding: 5px 15px;
+		}
+
+		.tg3-yuan-data .boxshadow,
+		.tg3-user-group .boxshadow {
+			border-radius: 5px;
+		}
+
+		/* 元数据管理卡片上边缘圆角   */
+
+		.tg3-yuan-data div#lt_item_list table {
+			border-top-left-radius: 5px;
+			border-top-right-radius: 5px;
+		}
+
+		.tg3-yuan-data div#lt_item_list table thead tr>th:first-child {
+			border-top-left-radius: 5px;
+		}
+
+		.tg3-yuan-data div#lt_item_list table thead tr>th:last-child {
+			border-top-right-radius: 5px;
+		}
+
+		/* 分析模型条件卡片行内高扩大   */
+
+		.tg3-auto-system .tg3-selectmore-fill3>li .parent-item,
+		.tg3-auto-system .tg3-selectmore-fill3>li {
+			min-height: 70px;
+		}
+
+		/* 分析模型条件卡片行内元素对齐   */
+
+		.tg3-auto-system .tg3-selectmore-fill3>li .parent-item .top-wrap {
+			padding-left: 110px;
+			margin-bottom: 0px;
+			padding-top: 17.5px;
+			padding-bottom: 17.5px;
+			min-height: 70px;
+		}
+
+		.tg3-auto-system .show-content span.title {
+			margin-top: 25px;
+		}
+
+		.tg3-auto-system .tg3-selectmore-fill3>li .option-list {
+			position: relative;
+			display: block;
+			padding: 0;
+			padding-top: 17.5px;
+			min-height: 70px;
+		}
+
+		.tg3-auto-system .tg3-selectmore-fill3>li .btn-union {
+			height: 70px;
+			padding-left: 40px;
+		}
+
+		.tg3-auto-system .tg3-selectmore-fill3>li .btn-union button {
+			margin-top: 20px;
+		}
+
+		.tg3-eventanalysis .tg3-selectmore-fill3 .option-list .tg3-selected-drop {
+			margin-left: 30px;
+		}
+
+		.tg3-eventanalysis .tg3-selectmore-fill3 li#tg_condition_time .tg3-selected-drop {
+			margin-left: 10px;
+		}
+
+		.tg3-eventanalysis .tg3-selectmore-fill3 li#tg_condition_object+span+li#tg_condition_customer .top-wrap p {
+			margin-left: 20px;
+		}
+
+		.tg3-eventanalysis .tg3-selectmore-fill3 li#tg_condition_object .top-wrap>ul,
+		.tg3-eventanalysis .tg3-selectmore-fill3 li#tg_condition_return .top-wrap>ul {
+			margin-left: 10px;
+		}
+
+		/* 卡片间距  */
+
+		.tg3-eventanalysis .blockpart+.blockpart {
+			margin-top: 25px;
+		}
+
+		div.tg3mainFullcontent .blockpart {
+			margin-top: 5px;
+		}
+
+		/*  分析模型图表卡片内元素对齐    */
+
+		.tg3-eventanalysis .blockpart+.blockpart .boxshadow .tg3-selectmore-fill>li:first-child {
+			padding-top: 11px;
+			padding-bottom: 14px;
+		}
+
+		/* .tg3-eventanalysis .blockpart+.blockpart .boxshadow .tg3-selectmore-fill>li>span+div {
+			margin-left: 14px;
+			margin-right: 10px;
+		} */
+
+		.tg3-auto-system .tg3-selectmore-fill3>li .parent-link-line::after {
+			left: 165px;
+			width: 70px;
+			margin-top: 0px;
+		}
+
+		.tg3-auto-system .tg3-selectmore-fill3>li .parent-item .control-position .op-union {
+			top: 17.5px;
+		}
+
+		.tg3-table-wrap .top-des {
+			top: 89px;
+			right: 35px;
+		}
+
+		.tg3-table-wrap .min-top-des {
+			left: 500px;
+			top: 23px;
+			right: 25px;
+			margin-left: 10px;
+		}
+
+		.tg3-eventanalysis .blockpart+.blockpart .boxshadow .tg3-selectmore-fill>li:last-child {
+			padding-top: 15px;
+		}
+
+		.tg3-eventanalysis .blockpart+.blockpart .boxshadow>ul:first-child {
+			margin-bottom: 25px;
+		}
+
+		/* 卡片宽度压缩   */
+
+		.tg3-eventanalysis .blockpart,
+		.tg3-yuan-data .blockpart,
+		.tg3-user-group .blockpart {
+			padding: 0px 7.5px 0px 7.5px;
+			max-width: 1650px;
+			margin-left: auto;
+			margin-right: auto;
+			float: none;
+		}
+
+		/* 用户群行内元素对齐    */
+
+		.tg3-user-group .blockpart .boxshadow .tg3-user-fill-list>li>span,
+		.tg3-user-group .blockpart .boxshadow .tg3-user-fill-list>li>input,
+		.tg3-user-group .blockpart .boxshadow .tg3-user-fill-list li.operation-li .tg3-selected-drop {
+			top: 16px;
+		}
+
+		.tg3-user-group .blockpart .boxshadow .tg3-user-fill-list>li .radio-select {
+			top: 22.5px;
+		}
+
+		.tg3-user-group .blockpart .boxshadow .tg3-user-fill-list .stable-parent-link-line::after {
+			margin-top: 5px;
+		}
+
+		.tg3-user-group .blockpart .boxshadow .tg3-user-fill-list li.operation-li button.download-data-btn {
+			margin-top: 16px;
+			margin-right: 30px;
+		}
+
+		.tg3-eventanalysis li#tg_condition_time {
+			padding-top: 5px;
+		}
+
+		/*  元数据搜索栏左收进  */
+
+		.tg3-yuan-data .boxshadow .property-search {
+			margin-left: 20px;
+		}
+
+		/*  Zebra line  */
+
+		.tg3-table-wrap .content .table3 table tr:nth-child(even),
+		.tg3-table-wrap .content .table4 table tr:nth-child(even) {
+			background: #fcfcfc;
+		}
+
+		/*  表格行悬停效果  */
+		.tg3-yuan-data .boxshadow .table3 tr:hover,
+		.tg3-table-wrap .content .tg3-yuan-data .boxshadow .table4 tr:hover,
+		.tg3-table-wrap .content .table4 tr:hover{
+			background: #f6f6fe !important;
+		}
+
+
+
+		.tg3-eventanalysis .tg3-selectmore-fill3>li .parent-item:hover,
+		/*  分析模型边框行悬停效果   */
+		.tg3-auto-system .tg3-selectmore-fill>li .parent-item:hover .link-line::before,
+		/*	用户群行悬停效果	*/
+		.tg3-user-group .blockpart .boxshadow .tg3-user-fill-list .parent-item:hover .child-item-wrap .done .son-item-wrap .son-list .second-link-line .done-virtual-line {
+			background: #f6f6fe;
+		}		
+		/* 分析模型行悬停效果  */
+		.tg3-eventanalysis .tg3-selectmore-fill3>li .parent-item .child-item-wrap:hover,
+		.tg3-eventanalysis .tg3-selectmore-fill>li .parent-item .top-wrap:hover,
+		/*  分析模型边框行悬停效果   */
+		.tg3-auto-system .tg3-selectmore-fill>li .parent-item .link-line:hover::before,
+		/*	用户群行悬停效果	*/
+		.tg3-user-group .blockpart .boxshadow .tg3-user-fill-list .parent-item .child-item-wrap .item-list:hover,
+		.tg3-user-group .blockpart .boxshadow .tg3-user-fill-list .parent-item .child-item-wrap .done .son-item-wrap .son-list .second-link-line:hover,
+		.tg3-user-group .blockpart .boxshadow .tg3-user-fill-list .parent-item .child-item-wrap .done .son-item-wrap .son-list .second-link-line:hover .done-virtual-line {
+			background: #F0F1FC;
+		}
+
+
+
+		/*  强制刷新Icon旋转动效 */
+		div#Tg3FullHeaderTop .operation-union li:hover i.hi4,div#Tg3HeaderTop .operation-union li:hover i.hi4{
+			transform: rotate(180deg);
+			-moz-transform: rotate(180deg);
+			/* Firefox 4 */
+			-webkit-transform: rotate(180deg);
+			/* Safari 和 Chrome */
+			-o-transform: rotate(180deg);
+			/* Opera */
+		}
+
+		div#Tg3FullHeaderTop .operation-union li i.hi4,div#Tg3HeaderTop .operation-union li i.hi4{
+			-webkit-transition: -webkit-transform 0.5s;
+			-o-transition-property: -o-transform;
+			-o-transition-duration: 0.5s;
+			-moz-transition-property: -o-transform;
+			-moz-transition-duration: 0.5s;
+			transition-property: transform;
+			transition-duration: 0.5s;
+		}
+
+		/* 用户群，元数据管理表格底部每页展示信息收进  */
+
+		.tg3-user-group .tg3-page-list ul.fl,
+		.tg3-yuan-data .tg3-page-list ul.fl {
+			left: 25px;
+		}
+		/*	顶部交互栏悬停字色变动	*/
+        		.div#Tg3HeaderTop .operation-union li, div#Tg3FullHeaderTop .operation-union li:hover span,div#Tg3HeaderTop .operation-union li:hover span{
+        			color:#5398ED;}
+
+        		/* 顶部交互栏Icon跳动动效  */
+        		div#Tg3FullHeaderTop .operation-union li:hover i.hi3, div#Tg3HeaderTop .operation-union li:hover i.hi1, div#Tg3HeaderTop .operation-union li:hover i.hi2{
+        			animation: iconjump .2s ease-in;
+        			-moz-animation: iconjump .2s ease-in;	/* Firefox */
+        			-webkit-animation: iconjump .2s ease-in;	/* Safari 和 Chrome */
+        			-o-animation: iconjump .2s ease-in;	/* Opera */}
+        		@keyframes iconjump{
+        			0%   {top:0px;}
+        			100%  {top:5px;}}
+        		@-moz-keyframes iconjump{
+        			0%   {top:0px;}
+        			100%  {top:5px;}}
+        		@-o-keyframes iconjump{
+        			0%   {top:0px;}
+        			100%  {top:5px;}}
+        		@-webkit-keyframes iconjump{
+        			0%   {top:0px;}
+        			100%  {top:5px;}}
+
+        		/* 顶部交互栏文本去选中底纹  */
+        		div#Tg3FullHeaderTop .operation-union li span::selection,div#Tg3HeaderTop .operation-union li span::selection{
+        		background:none;}
+        		div#Tg3FullHeaderTop .operation-union li span::-moz-selection,div#Tg3HeaderTop .operation-union li span::-moz-selection{
+        		background:none;}
+        		div#Tg3FullHeaderTop .operation-union li span::-webkit-selection,div#Tg3HeaderTop .operation-union li span::-webkit-selection{
+        		background:none;}
+        	/*文本域手势问题*/
+        	input,textarea {
+              cursor:default;
+            }
