@@ -1,6 +1,9 @@
+[TOC]
+
 ## jvm运行参数&jvm内存模型&jamp&jstack&VisualJVM
 
 [jvm运行参数&jvm内存模型&jamp&jstack&VisualJVM](./README.md)
+
 
 ## JVM优化
 
@@ -400,7 +403,7 @@ CMS垃圾回收器的执行过程如下：
 
 `MixedGC`什么时候触发？
  - 由参数 `-XX:InitiatingHeapOccupancyPercent=n`决定。n 默认`45%`当老年代大小占整个堆大小百分比达到该阀值时触发。
- 
+
 它的GC步骤分2步
 - `global concurrent marking`全局并发标记
 - `evacuation`拷贝存活对象

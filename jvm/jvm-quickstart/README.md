@@ -1,3 +1,6 @@
+[TOC]
+
+
 # JVM运行参数、JVM内存模型、dump文件分析、jstack死锁问题、visualjvm使用
 
 了解下我们为什么要学习JVM优化

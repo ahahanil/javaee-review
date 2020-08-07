@@ -1,3 +1,5 @@
+[TOC]
+
 ## Maven高级
 
 ## 1.maven基础知识回顾
@@ -674,7 +676,7 @@ maven项目构建
       private String detail;
       setXXX()/getXXX();   
   }
-  ```  
+  ```
 
 构建`maven-aggregation-dao`子模块
 - 配置`pom.xml`文件

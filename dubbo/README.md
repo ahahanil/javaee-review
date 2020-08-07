@@ -1,4 +1,7 @@
-# 分布式RPC框架Apache Dubbo 
+[TOC]
+
+
+## 分布式RPC框架Apache Dubbo 
 
 ## 1. 软件架构的演进过程
 
@@ -433,6 +436,7 @@ Dubbo作为一个RPC框架，其最核心的功能就是要实现跨网络的远
   ```
 
 - 运行测试 `tomcat7:run` 启动
+
   - 在浏览器输入`http://localhost:8082/demo/hello.do?name=Jack`，查看浏览器输出结果
 
 

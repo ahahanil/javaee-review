@@ -1,4 +1,6 @@
-# ElasticSearch第一天
+[TOC]
+
+# ElasticSearch
 
 ## 学习目标：
 
@@ -86,6 +88,7 @@ ElasticSearch不同于Solr自带图形化界面，可以通过安装ElasticSearc
 
   - 将`elasticsearch-head-master`压缩包解压到任意目录，但是要和`elasticsearch`的安装目录区别开
 - 下载 [nodejs](https://nodejs.org/en/download)
+
   - 安装后cmd控制台输入 `node -v` 查看版本号
 - 将`grunt`安装为全局命令 ，`Grunt`是基于Node.js的项目构建工具
   - 在cmd控制台中输入如下执行命令
@@ -1094,6 +1097,6 @@ POST	localhost:9200/blog1/article/1
 ![elasticsearch-header查看集群情况](assets/elasticsearch-header查看集群情况.png)
 
 
-# 7. java操作es
+# java操作es
 
 [java操作es](./es-with-java.md)

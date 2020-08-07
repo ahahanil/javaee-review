@@ -1,3 +1,5 @@
+[TOC]
+
 # RabbitMQ进阶 #
 > RabbitMQ 高级特性
 > RabbitMQ 应用问题
@@ -206,7 +208,7 @@ producer--->rabbitmq broker--->exchange--->queue--->consumer
     }
     ```
 #### 1.1.2 return 退回模式消息的可靠投递 ####
-  
+
 `return`退回模式： 当消息发送给`Exchange`后，`Exchange`路由到`Queue`**失败**后才会执行`ReturnCallBack`
 - 步骤
   - ConnectionFactory开启回退模式`publisher-returns="true"`
@@ -322,7 +324,7 @@ RabbitMQ中也提供了事务机制，但是性能较差，此处不做讲解。
   - `txCommit()`用于提交事务
   - `txRollback()`用于回滚事务
 
- 
+
 ## 1.2 Consumer Ack消费端消息可靠保障 ##
 `ack`指`Acknowledge`确认。表示消费端收到消息后的确认方式。
 消费端收到消息后三种确认方式
@@ -464,7 +466,7 @@ RabbitMQ中也提供了事务机制，但是性能较差，此处不做讲解。
           }
       }
   }
-  ```  
+  ```
 
 ### 1.2 Consumer Ack 小结 ###
 在`rabbit:listener-container`标签中设置`acknowledge`属性
@@ -562,7 +564,7 @@ public class QosListener implements ChannelAwareMessageListener {
     }
 }
 ```
-  
+
 ### 1.4.1 消费端限流小结 ###
 在`<rabbit:listener-container>` 中配置 `prefetch`属性设置消费端一次拉取多少消息
 消费端实现`org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener.onMessage(org.springframework.amqp.core.Message, com.rabbitmq.client.Channel)`方法且确认模式一定为手动确认`acknowledge="manual"`

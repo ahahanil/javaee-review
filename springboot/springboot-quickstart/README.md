@@ -1,3 +1,5 @@
+[TOC]
+
 ## 0. 学习目标 ##
 > 说出Spring Boot的作用
 >
@@ -379,9 +381,9 @@ public class JdbcProperties {
 ![applicationProperties](assets/applicationProperties)
 
   - 注意如果出现如下提示，项目也可以运行
-  
+
   ![configuretionProperties-warning](assets/configuretionProperties-warning.png)
-  
+
   - 如果要去掉上述的提示，则可以在 `pom.xml` 文件中添加如下依赖
     ```xml
     <dependency>
@@ -1204,6 +1206,7 @@ SpringBoot为我们提供了默认配置，而默认配置生效的步骤
     port: 80
   ```
   
+
 如果`properties`和`yml`文件都存在，如果有重叠属性，默认以`Properties`优先。遇到需要修改的组件的配置项流程
 
 ![组件的配置项流程](assets/组件的配置项流程.png)
