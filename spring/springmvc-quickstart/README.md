@@ -51,7 +51,7 @@ public class UserServlet extends HttpServlet {
 
 应用上下文对象是通过`new ClasspathXmlApplicationContext(spring配置文件);` 方式获取的，但是每次请求都需要创建容器然后从容器中获得Bean时都要编写`new ClasspathXmlApplicationContext(spring配置文件);`，这样的弊端是配置文件加载多次，应用上下文对象创建多次。
 
-在Web项目中，可以使用`ServletContextListener`监听Web应用的启动，我们可以在Web应用启动时，就加载Spring的配置文件，创建应用上下文对象`ApplicationContext`，在将其存储到最大的域`servletContext域`中，这样就可以在任意位置从域中获得应用上下文`ApplicationContext`对象了。
+在Web项目中，可以使用`ServletContextListener`监听Web应用的启动，可以在Web应用启动时，就加载Spring的配置文件，创建应用上下文对象`ApplicationContext`，在将其存储到最大的域`servletContext域`中，这样就可以在任意位置从域中获得应用上下文`ApplicationContext`对象了。
 
 ```java
 package tk.deriwotua.listener;
@@ -351,7 +351,7 @@ SpringMVC的开发步骤
 
 ①用户发送请求至前端控制器DispatcherServlet。
 
-②DispatcherServlet收到请求调用HandlerMapping处理器映射器。
+②DispatcherServlet收到请求调用HandlerMapping处理器映射器查询Handler。
 
 ③处理器映射器找到具体的处理器(可以根据xml配置、注解进行查找)，生成处理器对象及处理器拦截器(如果有则生成)一并返回给DispatcherServlet。
 
@@ -371,29 +371,30 @@ SpringMVC的开发步骤
 
 ### 3.2 SpringMVC组件解析
 
-1. **前端控制器：`org.springframework.web.servlet.DispatcherServlet``**
 
-​    用户请求到达前端控制器，它就相当于 MVC 模式中的 C，DispatcherServlet 是整个流程控制的中心，由它调用其它组件处理用户的请求，DispatcherServlet 的存在降低了组件之间的耦合性。
+**前端控制器：`org.springframework.web.servlet.DispatcherServlet``**
 
-2. **处理器映射器：`org.springframework.web.servlet.HandlerMapping`**
+- 用户请求到达前端控制器，它就相当于 MVC 模式中的 C，DispatcherServlet 是整个流程控制的中心，由它调用其它组件处理用户的请求，DispatcherServlet 的存在降低了组件之间的耦合性。
 
-​    HandlerMapping 负责根据用户请求找到 Handler 即处理器，SpringMVC 提供了不同的映射器实现不同的映射方式，例如：配置文件方式，实现接口方式，注解方式等。
+**处理器映射器：`org.springframework.web.servlet.HandlerMapping`**
 
-3. **处理器适配器：`org.springframework.web.servlet.HandlerAdapter`**
+- HandlerMapping 负责根据用户请求找到 Handler 即处理器，SpringMVC 提供了不同的映射器实现不同的映射方式，例如：配置文件方式，实现接口方式，注解方式等。
 
-​    通过 HandlerAdapter 对处理器进行执行，这是适配器模式的应用，通过扩展适配器可以对更多类型的处理器进行执行。
+**处理器适配器：`org.springframework.web.servlet.HandlerAdapter`**
 
-4. **处理器：Handler**
+- 通过 HandlerAdapter 对处理器进行执行，这是适配器模式的应用，通过扩展适配器可以对更多类型的处理器进行执行。
 
-​    它就是我们开发中要编写的具体业务控制器。由 DispatcherServlet 把用户请求转发到 Handler。由Handler 对具体的用户请求进行处理。
+**处理器：Handler**
 
-5. **视图解析器：`org.springframework.web.servlet.ViewResolver`**
+- 它就是我们开发中要编写的具体业务控制器。由 DispatcherServlet 把用户请求转发到 Handler。由Handler 对具体的用户请求进行处理。
 
-​    View Resolver 负责将处理结果生成 View 视图，View Resolver 首先根据逻辑视图名解析成物理视图名，即具体的页面地址，再生成 View 视图对象，最后对 View 进行渲染将处理结果通过页面展示给用户。
+**视图解析器：`org.springframework.web.servlet.ViewResolver`**
 
-6. **视图：`org.springframework.web.servlet.View`**
+- View Resolver 负责将处理结果生成 View 视图，View Resolver 首先根据逻辑视图名解析成物理视图名，即具体的页面地址，再生成 View 视图对象，最后对 View 进行渲染将处理结果通过页面展示给用户。
 
-​    SpringMVC 框架提供了很多的 View 视图类型的支持，包括：`jstlView`、`freemarkerView`、`pdfView`等。最常用的视图就是 jsp。一般情况下需要通过页面标签或页面模版技术将模型数据通过页面展示给用户，需要由程序员根据业务需求开发具体的页面
+**视图：`org.springframework.web.servlet.View`**
+
+- SpringMVC 框架提供了很多的 View 视图类型的支持，包括：`jstlView`、`freemarkerView`、`pdfView`等。最常用的视图就是 jsp。一般情况下需要通过页面标签或页面模版技术将模型数据通过页面展示给用户，需要由程序员根据业务需求开发具体的页面
 
 ### 3.3 SpringMVC注解解析
 

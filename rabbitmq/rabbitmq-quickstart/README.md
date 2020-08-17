@@ -1928,6 +1928,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * 配置EXCHANGE_NAME、QUEUE_NAME 相当于给rabbitTemplate指定了默认交换机和队列
+ */
 @Configuration
 public class RabbitMQConfig {
 

@@ -38,12 +38,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.itheima</groupId>
-  <artifactId>itheima_spring_jdbc</artifactId>
+  <groupId>tk.deriwotua</groupId>
+  <artifactId>spring_jdbc</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>war</packaging>
 
-  <name>itheima_spring_jdbc Maven Webapp</name>
+  <name>spring_jdbc Maven Webapp</name>
   <!-- FIXME change it to the project's website -->
   <url>http://www.example.com</url>
   <dependencies>
@@ -401,7 +401,14 @@ public class JdbcTemplateCRUDTest {
 
 `org.springframework.transaction.TransactionDefinition` 是事务的定义信息对象，里面有如下方法：
 
-![1554628676150](assets/3.png)
+| 方法                         | 说明               |
+| ---------------------------- | ------------------ |
+| int getIsolationLevel()      | 获得事务的隔离级别 |
+| int getPropogationBehavior() | 获得事务的传播行为 |
+| int getTimeout()             | 获得超时时间       |
+| boolean isReadOnly()         | 是否只读           |
+
+
 
 #### 1. `IsolationLevel`事务隔离级别
 
@@ -441,7 +448,14 @@ public class JdbcTemplateCRUDTest {
 
 `org.springframework.transaction.TransactionStatus` 接口提供的是事务具体的运行状态，方法介绍如下。
 
-![1554628857200](assets/4.png)
+| 方法                       | 说明           |
+| -------------------------- | -------------- |
+| boolean hasSavepoint()     | 是否存储回滚点 |
+| boolean isCompleted()      | 事务是否完成   |
+| boolean isNewTransaction() | 是否是新事务   |
+| boolean isRollbackOnly()   | 事务是否回滚   |
+
+
 
 ### 1.4 知识要点
 

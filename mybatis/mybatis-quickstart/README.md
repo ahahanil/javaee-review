@@ -39,7 +39,7 @@ user.setUsername("tom");
 user.setPassword("lucy");
 //注册启动
 Class.forName("com.mysql.jdbc.Drive");
-Connection connection = DriveManager.getConnection("jdbc:mysql:///test", root), root;
+Connection connection = DriveManager.getConnection("jdbc:mysql:///test", root, root);
 //获得statement
 PreparedStatement statement = connection.prepareStatement("insert into user(id, username, password) values (?, ?, ?);");
 //设置占位符参数
@@ -189,7 +189,7 @@ public class User {
 	</environments>    
 	
 	<mappers> 
-		<mapper resource="com/itheima/mapper/UserMapper.xml"/> 
+		<mapper resource="tk/deriwotua/mapper/UserMapper.xml"/> 
 	</mappers>
 </configuration>
 ```

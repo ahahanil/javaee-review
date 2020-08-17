@@ -198,7 +198,7 @@ proxy.save();
 
 Spring 的 AOP 实现底层就是对上面的动态代理的代码进行了封装，封装后我们只需要对需要关注的部分进行代码编写，并通过配置的方式完成指定目标的方法增强。
 
-在正式讲解 AOP 的操作之前，我们必须理解 AOP 的相关术语，常用的术语如下：
+在正式讲解 AOP 的操作之前，必须理解 AOP 的相关术语，常用的术语如下：
 
 - `Target`目标对象：代理的目标对象
 
@@ -206,7 +206,7 @@ Spring 的 AOP 实现底层就是对上面的动态代理的代码进行了封�
 
 - `Joinpoint`连接点：所谓连接点是指那些被拦截到的点。在spring中,这些点指的是方法，因为spring只支持方法类型的连接点
 
-- `Pointcut`切入点：所谓切入点是指我们要对哪些 `Joinpoint` 进行拦截的定义
+- `Pointcut`切入点：所谓切入点是指要对哪些 `Joinpoint` 进行拦截的定义
 
 - `Advice`通知/ 增强：所谓通知是指拦截到 `Joinpoint` 之后所要做的事情就是通知
 
@@ -453,13 +453,17 @@ execution([修饰符] 返回值类型 包名.类名.方法名(参数))
         <aop:pointcut id="myPointcut" expression="execution(* tk.deriwotua.aop.*.*(..))"></aop:pointcut>
         <!--切面：切点+通知-->
         <!--<aop:before method="before" pointcut="execution(public void Target.save())"/>-->
-        <!--<aop:before method="before" pointcut="execution(* tk.deriwotua.aop.*.*(..))"/>
-        <aop:after-returning method="afterReturning" pointcut="execution(* tk.deriwotua.aop.*.*(..))"/>-->
-        <!--<aop:around method="around" pointcut="execution(* tk.deriwotua.aop.*.*(..))"/>
-        <aop:after-throwing method="afterThrowing" pointcut="execution(* tk.deriwotua.aop.*.*(..))"/>
+        <!--<aop:before method="before" pointcut="execution(* tk.deriwotua.aop.*.*(..))"/>-->
+		<!-- 后置通知 增强方法切入点之后执行 -->        
+        <!--<aop:after-returning method="afterReturning" pointcut="execution(* tk.deriwotua.aop.*.*(..))"/>-->
+        <!--<aop:around method="around" pointcut="execution(* tk.deriwotua.aop.*.*(..))"/>-->
+		<!-- 异常通知 指定方法出现异常时执行 -->
+        <!--<aop:after-throwing method="afterThrowing" pointcut="execution(* tk.deriwotua.aop.*.*(..))"/>
         <aop:after method="after" pointcut="execution(* tk.deriwotua.aop.*.*(..))"/>
         <aop:after method="after" pointcut="execution(* *..*.*(..))"/>-->
+		<!-- 环绕通知 指定方法切入点方法之前之后执行 -->        
         <aop:around method="around" pointcut-ref="myPointcut"/>
+		<!-- 最终通知 增强方法执行是否有异常都会执行 -->          
         <aop:after method="after" pointcut-ref="myPointcut"/>
 
     </aop:aspect>

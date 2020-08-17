@@ -234,7 +234,7 @@ public User save10() throws IOException {
 
 ### 09-SpringMVC的数据响应-回写数据-返回对象或集合2(应用)
 
-在方法上添加`@ResponseBody`就可以返回json格式的字符串，但是这样配置比较麻烦，配置的代码比较多，因此，我们可以使用mvc的注解驱动代替上述配置
+在方法上添加`@ResponseBody`就可以返回json格式的字符串，但是这样配置比较麻烦，配置的代码比较多，因此，可以使用mvc的注解驱动代替上述配置
 
 ```xml
 <mvc:annotation-driven/>
@@ -464,7 +464,7 @@ public void save15(@RequestBody List<User> userList) throws IOException {
 
 ### 17-SpringMVC的请求-获得请求参数-静态资源访问的开启(应用)
 
-当有静态资源需要加载时，比如jquery文件，通过谷歌开发者工具抓包发现，没有加载到jquery文件，原因是SpringMVC的前端控制器DispatcherServlet的url-pattern配置的是/,代表对所有的资源都进行过滤操作即会与`@RequestMapping`映射匹配当找不到jquery文件相关映射就表现无法加载，我们可以通过以下两种方式指定放行静态资源：
+当有静态资源需要加载时，比如jquery文件，通过谷歌开发者工具抓包发现，没有加载到jquery文件，原因是SpringMVC的前端控制器DispatcherServlet的url-pattern配置的是/,代表对所有的资源都进行过滤操作即会与`@RequestMapping`映射匹配当找不到jquery文件相关映射就表现无法加载，可以通过以下两种方式指定放行静态资源：
 - 在spring-mvc.xml配置文件中指定mvc放行的资源`<mvc:resources mapping="/js/**"location="/js/"/> `
   - mapping与访问路径映射 
   - location路径映射的文件目录

@@ -30,7 +30,15 @@ maven 是一个项目管理工具，主要作用是在项目开发阶段对Java�
 
 ### 1.4 maven坐标书写规范
 
-![](assets/图片2.png)
+
+
+```xml
+<dependency>
+	<groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>5.1.32</version>
+</dependency>
+```
 
 
 
@@ -64,11 +72,11 @@ maven 是一个项目管理工具，主要作用是在项目开发阶段对Java�
 
 ### 2.3 如何解决依赖冲突
 
-1.使用maven提供的依赖调解原则，`第一声明者优先原则`即路径近者优先原则
+1. 使用maven提供的依赖调解原则，`第一声明者优先原则`即路径近者优先原则
 
-2.排除依赖
+2. 排除依赖
 
-3.锁定版本 
+3. 锁定版本 
 
 ### 2.4 依赖调节原则`第一声明者优先原则`
 
@@ -1165,14 +1173,14 @@ maven私服是搭建在公司局域网内的maven仓库，公司内的所有开�
 - 配置maven的`settings.xml`文件
   ```xml
   <server>
-  <id>releases</id>
-  <username>admin</username>   
-  <password>admin123</password>
+      <id>releases</id>
+      <username>admin</username>   
+      <password>admin123</password>
   </server>
   <server>
-  <id>snapshots</id>
-  <username>admin</username>
-  <password>admin123</password>
+      <id>snapshots</id>
+      <username>admin</username>
+      <password>admin123</password>
   </server>
   ```
 

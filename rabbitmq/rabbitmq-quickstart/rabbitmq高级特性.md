@@ -26,6 +26,7 @@ RabbitMQ集群搭建
 ## 1. RabbitMQ 高级特性 ##
 在使用 RabbitMQ 的时候，作为消息发送方希望杜绝任何消息丢失或者投递失败场景。
 RabbitMQ 为提供了两种方式用来控制消息的投递可靠性模式。
+
 - `confirm` 确认模式
 - `return` 退回模式
 
@@ -313,8 +314,13 @@ producer--->rabbitmq broker--->exchange--->queue--->consumer
 ### 1.1 消息的可靠投递小结 ###
 confirms确认模式
 - 设置`ConnectionFactory`的`publisher-confirms="true"` 开启 确认模式。
+
 - 使用`rabbitTemplate.setConfirmCallback`设置回调函数。当消息发送到`exchange`后回调`confirm`方法。在方法中判断`ack`，如果为`true`，则发送成功，如果为`false`，则发送失败，需要处理。
+
+  
+
 returns回退模式
+
 - 设置`ConnectionFactory`的`publisher-returns="true"` 开启 退回模式。
 - 使用`rabbitTemplate.setReturnCallback`设置退回函数，当消息从`exchange`路由到`queue`失败后，如果设置了`rabbitTemplate.setMandatory(true)`参数，则会将消息退回给`producer`。并执行回调函数`returnedMessage`。
 
@@ -576,7 +582,7 @@ public class QosListener implements ChannelAwareMessageListener {
 当消息到达存活时间后，还没有被消费，会被自动清除。
 RabbitMQ可以对消息设置过期时间，也可以对整个队列（Queue）设置过期时间。
 
-订单系统下单消息推送到mq后会设置其`TTL``过期时间比如设置30分钟，在30分钟内这条消息还没有被支付系统消费掉时这条订单就自动失效
+订单系统下单消息推送到mq后会设置其`TTL`过期时间比如设置30分钟，在30分钟内这条消息还没有被支付系统消费掉时这条订单就自动失效
 ![ttl](assets/ttl.png)
 
 设置过期时间
@@ -939,13 +945,13 @@ RabbitMQ可以对消息设置过期时间，也可以对整个队列（Queue）�
   ```
 - 定义死信交换机（order_exchange_dlx）和队列(order_queue_dlx)
   ```xml
-    <!-- 1. 定义正常交换机（order_exchange）和队列(order_queue)-->
-    <rabbit:queue id="order_queue" name="order_queue"></rabbit:queue>
-    <rabbit:topic-exchange name="order_exchange">
-        <rabbit:bindings>
-            <rabbit:binding pattern="order.#" queue="order_queue"></rabbit:binding>
-        </rabbit:bindings>
-    </rabbit:topic-exchange>
+  <!-- 1. 定义正常交换机（order_exchange）和队列(order_queue)-->
+  <rabbit:queue id="order_queue" name="order_queue"></rabbit:queue>
+  <rabbit:topic-exchange name="order_exchange">
+      <rabbit:bindings>
+          <rabbit:binding pattern="order.#" queue="order_queue"></rabbit:binding>
+      </rabbit:bindings>
+  </rabbit:topic-exchange>
   <!--  2. 定义死信交换机（order_exchange_dlx）和队列(order_queue_dlx)-->
   <rabbit:queue id="order_queue_dlx" name="order_queue_dlx"></rabbit:queue>
   <rabbit:topic-exchange name="order_exchange_dlx">
