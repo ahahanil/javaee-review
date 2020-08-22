@@ -74,6 +74,8 @@ Zookeeper的数据节点可以视为树状结构(或者目录)，树中的各节
 `来定位某个`znode`，比如`/ns-1/deriwotua/mysql/schema1/table1`，此处`ns-1`、`deriwotua`、`mysql`、`schema1`、`table1`分别是根节点、2级节点、3級节点以及4级节点其中`ns-1`
 是`deriwotua`的父节点，`deriwotua`是`ns-1`的子节点以此类推。
 
+![数据模型类关系图](assets.数据模型类关系图.png)
+
 `znode`兼具文件和目录两种特点。既像文件一样维护着`数据`、`元信息`、`ACL`、`时间戳`等数据结构，又像目录一样可以作为路径标识的一部分。
 
 ![1597801720036](assets/1597801720036.png)
