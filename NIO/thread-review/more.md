@@ -2107,31 +2107,40 @@ how are you
 
 ### 9.1 AIO 模型
 
-再梳理一下AIO变成模型运行的机制
+再梳理一下AIO模型运行机制
 - 服务端创建`AsyncServerSocketChannel`即异步的服务端通道，同时把通道绑定到服务器端监听的端口
-  - 其实`AsyncServerSocketChannel`是属于某个`AsyncChannelGroup` 通道组的，这个通道组指的是一组可以被多个异步通道所共享的资源群组，里边最主要的是线程池，之所以需要 `AsyncChannelGroup` 来保存 `AsyncServerSocketChannel` 是因为在IO编程模型里，系统操作系统已经做了很多的事情，使用起来方便高效。当操作系统准备好数据后，会以异步的方式来通知或者通过设定的 handler 做异步操作。操作系统怎样来进行dispatch各种handler需要做的工作？在实际的实现当中，操作系统需要使用各种各样的性的资源，比如如果给定一个线程池，那么操作系统就可以重复利用线程池里边这些可供使用的线程来dispatch一些handler执行处理业务逻辑。这个就是创建AsyncServerSocketChannel的时指定AsynchronousChannelGroup的原因所在。
+  - 其实`AsyncServerSocketChannel`是属于某个`AsyncChannelGroup` 通道组(有没有点 Netty 味道)，这个异步通道组指的是一组可以被多个异步通道所共享的资源群组，里边最主要的是线程池，之所以需要 `AsyncChannelGroup` 来包装 `AsyncServerSocketChannel`等一些共享资源因为在AIO模型里，它的便利和高效来源于系统操作系统层面帮着做了很多的事情。当操作系统准备好数据后，会以异步`CompletionHandler#callback()`回调或 `Future`方式来通知处理后续操作。操作系统怎样来进行调度各种handler需要做的工作？在实际的实现当中，操作系统需要使用各种各样的性的资源，比如如果给定一个线程池，那么操作系统就可以重复利用线程池里边这些可供使用的线程来调度一些handler执行处理业务逻辑。创建`AsyncServerSocketChannel`时指定`AsynchronousChannelGroup`就是供操作系统进行调度。
 
   ![AsynchronousChannelGroup](assets/AsynchronousChannelGroup.png)
 
-- 在一开始没有专门的额外的去设定 AsyncServerSocketChannel 的 group，当不设置 AsynchronousChannelGroup 时，系统会使用默认的 AsynchronousChannelGroup 默认的group是整个系统层面上被共享的 channel group。
+- 上面例子中并没有专门的额外的去设定 `AsyncServerSocketChannel` 的 `AsyncChannelGroup`，当不设置 `AsynchronousChannelGroup` 时，系统会使用默认 `AsynchronousChannelGroup` 作为整个系统层面上被共享的 channel group。
 
-- 后面会演示怎么创建一个特定的channel group。并且让异步的通道，比如说 AsyncServerSocketChannel将它放置在指定的group里并且让这个异步的channel通道也可以去共享整个channel group中的系统资源。
+- 后面会演示怎么创建一个特定的channel group。然后把`AsyncServerSocketChannel`异步通道放置在指定的group里来共享整个channel group中的系统资源。
 
-有了 group、ServerSocketChannel那么异步机制怎么样实现？
-- 较常用的方法就是创建一个 handler 然后有IO事件发生的时操作系统就可以dispatch指定 handler 完成相应操作。比如说创建 AsyncServerSocketChannel 后首先需要 Handler 去 accept 新的客户的连接IO事件。
+
+
+有了 group、`ServerSocketChannel` 那么异步机制怎么样实现？
+- 较常用的方法就是创建 `CompletionHandler` 绑定到某个`ACCEPT | READ | WRITE` 事件上然后当IO事件发生的时操作系统就可以调度相应 Handler 处理该事件结果。
+
+  - 比如创建 `AsyncServerSocketChannel` 后首先需要 Handler 去 `accept` 新的客户的连接IO事件。当有客户端请求发过来要求和服务端进行建立连接时，`ACCEPT`事件就会触发注册相应 `AcceptHandler` 触发 Handler 去处理客户端发起连接事件即客户端和服务器之间的连接建立后后续操作。
 
   ![async-handler](assets/async-handler.png)
 
-- 当有客户端请求发过来，要求和服务器端进行建立连接的时，这个IO事件就会触发注册的 handler，也可以叫做AcceptHandler。触发这个handler去处理客户端发起连接的事件，就会建立好客户和服务器之间的连接。
-- 当建立连接后。在服务器端就可以取得连接 AsyncSocketChannel对象这个socket channel的就可以用来由服务器向客户端收发数据，异步的socket channel针对socket channel不管read或write都是异步的。所以也都需要指定handler处理相应读写事件
+  
+
+  - 当建立连接后。在服务器端就可以取得连接 `AsyncSocketChannel`客户端异步通道对象就可以用来服务器向客户端收发数据，当然通过这个客户端异步通道不管是读操作还是写操作都是异步的，所以也都需要给这些操作指定 Handler 处理相应读写事件结果。
 
   ![异步通道读写事件handler处理类](assets/异步通道读写事件处理类.png)
 
-- 当然还可能会有多个客户端来发起连接，新的客户端发出连接请求，首先 accept handler 被触发然后为新客户端对应的socket channel注册handler，而后从某个客户端收到消息事件服务器端使用相应socket channel进行读read操作。由于是异步的，即使当时调用read时没有任何的数据可读，但等到真的有数据从客户端发过来可读时，就会触发相对应socket channel所注册过的handler。
+  - 当然很可能会有多个客户端发起连接请求其过程是类似的。
 
   ![每个客户端对应相应的Handler](assets/每个客户端对应相应的Handler.png)
 
-上面梳理AIO编程模型的运行的机制。和BIO和NIO的模型都有非常大的区别。异步的调用机制是它最特别的地方。
+梳理AIO模型的运行的机制和BIO、NIO模型都有非常大的区别
+
+- **异步的调用机制是它最特别的地方**。
+
+
 
 ### 9.2 AIO ChatServer 服务器的创建
 
