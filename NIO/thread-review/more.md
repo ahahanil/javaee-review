@@ -1,3 +1,6 @@
+[TOC]
+
+
 
 ## 2.网络层的解析与协议
 
@@ -75,7 +78,6 @@ DNS迭代查询
 
 网络编程的本质是进程间通信
 ![网络编程的本质是进程间通信](assets/网络编程的本质是进程间通信.png)
-
 
 通信的基础是 IO 模型对象、字符串都可以是数据源
 ![通信的基础是IO模型](assets/通信的基础是IO模型.png)
@@ -193,88 +195,124 @@ java 提供的创建线程池的方法
 通过分析BIO编程模型，了解BIO设计思想掌握BIO编程核心类和网络编程原理
 
 ### 4.1 Socket与ServerSocket
+
+> Socket 客户端网络通信的端点
+>
+> ServerSocket 服务端网络通信端点
+
+
+
 客户端和服务端的流程
+
+- 服务端Socket先bind到端口后监听端口上连接
+- 客户端Socket发起connect连接服务端Socket监听到后accept接受后建立服务端与客户端通过I/O流互相通信Socket对象
+
+
+
 ![客户端和服务端的流程](assets/客户端和服务端的流程.png)
 
-### 4.2 实战：ServerSocket
-`Server.java`
+### 4.2 ServerSocket服务端
+
 ```java
+package tk.deriwotua.socket.bio;
+
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+/**
+ * BIO socket编程 运服务端
+ */
 public class Server {
+
     public static void main(String[] args) {
-         final int DEFAULT_PORT = 8888;
-         ServerSocket serverSocket = null;     
-         try {
-             // 绑定监听端口
-             ServerSocket = new ServerSocket(DEFAULT_PORT);  
-             System.out.println("启动服务器，监听端口" + DEFAULT_PORT);
-             while (true) {
-                // 等待客户端连接
+        final int DEFAULT_PORT = 8888;
+        /*ServerSocket serverSocket = null;
+        try {
+            // 绑定监听端口
+            serverSocket = new ServerSocket(DEFAULT_PORT);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (null != serverSocket) {
+                try {
+                    serverSocket.close();
+                    System.out.println("关闭 ServerSocket");
+                } catch (Exception e) {
+                }
+            }
+        }*/
+        /**
+         * JDK 7 try-with-resources 语句确保了每个资源在语句结束时关闭不需要finally手动关闭
+         * Java 9 又进一步做了改进
+         * 绑定监听端口
+         */
+        try (ServerSocket serverSocket = new ServerSocket(DEFAULT_PORT); ) {
+            System.out.println("启动服务器，监听端口" + DEFAULT_PORT);
+            while (true) {
+                // 阻塞等待客户端连接
                 Socket socket = serverSocket.accept();
                 System.out.println("客户端[" + socket.getPort() + "]已连接");
-                BufferedReader reader = 
-                   new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                BufferedWriter writer = 
-                   new BufferedWriter(new OutputStreamWriter(socket.getOututSream()));
-                // 读取客户端发送的消息，这个时候只能读取一行的消息，后面改善
+                // 装饰器模式
+                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+
+                // 读取客户端发送的消息，这个时候只能读一行消息(基于行分隔符)，后面改善
                 String msg = reader.readLine();
                 if (null != msg) {
-                    System.out.println("客户端[" + socket.getPort + "]: " + msg);
+                    System.out.println("客户端[" + socket.getPort() + "]:" + msg);
                     // 回复客户端发送的消息
                     writer.write("服务器:" + msg + "\n");
-                    writer.flush(); // 缓冲区的数据发送出去
+                    // 缓冲区的数据发送出去
+                    writer.flush();
                 }
-             }
-         } catch (Exception e) {
-           e.printStackTrace();
-         } finally {
-            if (null != serverSocket) {
-               try {
-                  serverSocket.close();
-                  System.out.println("关闭ServerSocket");  
-               }catch(Exception e) {}
             }
-         }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 ```
 
 
-### 4.3 实战：Socket
-`Client.java`
+### 4.3 Socket客户端
+
 ```java
+package tk.deriwotua.socket.bio;
+
+import java.io.*;
+import java.net.Socket;
+
+/**
+ * BIO socket编程 客户端
+ */
 public class Client {
+
     public static void main(String[] args) {
-         final String DEFAULT_SERVER_HOST = "127.0.0.1";
-         final int DEFAULT_PORT = 8888;
-         Socket socket = null;
-         BufferedWriter writer;
-         try {
-            // 创建 socket
-            socket = new Socket(DEFAULT_SERVER_HOST, DEFAULT_PORT);
-            // 创建 IO 流
-            BufferedReader reader = 
-               new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            writer = 
-               new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        final String DEFAULT_SERVER_HOST = "127.0.0.1";
+        final int DEFAULT_PORT = 8888;
+
+        /**
+         * 创建客户端socket 创建IO流
+         */
+        try (Socket socket = new Socket(DEFAULT_SERVER_HOST, DEFAULT_PORT);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));) {
+
             // 等待用户输入信息
-            BufferedRaeder consoleReader = 
-               new BufferedRreader(new InputStreamReader(System.in));
+            BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
             String input = consoleReader.readLine();
+
             // 发送消息给服务器
             writer.write(input + "\n");
             writer.flush();
+
             // 读取服务器返回的消息
             String msg = reader.readLine();
-            System.out.println("" + msg); 
-         } catch(IOException e) {
-            
-         } finall {
-           if (null != writer ) {
-              try {
-                writer.close();
-                System.out.println("关闭 Socket");     
-              } catch(){}              
-           }
+            System.out.println("" + msg);
+        } catch (Exception e) {
+
         }
     }
 }
@@ -284,98 +322,125 @@ public class Client {
 
 运行 Server 和 Client 的代码
 
+```text
+########## 启动服务端 ##########
+启动服务器，监听端口8888	  # 服务端启动监听8888端口
+客户端[54314]已连接		# 客户端启动后发起connect连接服务端accept后建立Socket
+客户端[54314]:hello world	# 收到客户端发送的 hello world
+							# 服务端继续监听 8888 端口
+
+########## 启动客户端 ##########
+hello world			# 客户端启动后发送 hello world
+服务器:hello world		# 服务端回复 hello world
+
+Process finished with exit code 0	# 消息发送后客户端正常退出
+```
+
+
+
 ### 4.5 运行改进的服务器客户端实例
 
-1. 客户端可以一直发送数据，如果发送的是 quit 的数据，那么服务器就关闭，客户端这个时候也需要关闭
+客户端可以一直发送数据，如果发送的是 quit 的数据，那么服务器就关闭，客户端这个时候也需要关闭
 
 - 服务端
 ```java
-public class Server {
+package tk.deriwotua.socket.bio;
+
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+/**
+ * BIO socket编程 服务端
+ */
+public class Server2 {
+
     public static void main(String[] args) {
-         final String QUIT = "quit"; 
-         final int DEFAULT_PORT = 8888;
-         ServerSocket serverSocket = null;     
-         try {
-             // 绑定监听端口
-             ServerSocket = new ServerSocket(DEFAULT_PORT);  
-             System.out.println("启动服务器，监听端口" + DEFAULT_PORT);
-             while (true) {
+        final String QUIT = "quit";
+        final int DEFAULT_PORT = 8888;
+
+        /**
+         * 绑定监听端口
+         */
+        try (ServerSocket serverSocket = new ServerSocket(DEFAULT_PORT);){
+            System.out.println("启动服务器，监听端口" + DEFAULT_PORT);
+            while (true) {
                 // 等待客户端连接
                 Socket socket = serverSocket.accept();
                 System.out.println("客户端[" + socket.getPort() + "]已连接");
-                BufferedReader reader = 
-                   new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                BufferedWriter writer = 
-                   new BufferedWriter(new OutputStreamWriter(socket.getOututSream()));
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+
+                // 读取客户端发送的消息
                 String msg = null;
                 while((msg = reader.readLine()) != null) {
-                      System.out.println("客户端[" + socket.getPort + "]: " + msg);
-                       // 回复客户端发送的消息
-                       writer.write("服务器:" + msg + "\n");
-                       writer.flush(); // 缓冲区的数据发送出去
-                       // 查看客户端是否退出，其实这里的代码不用写，因为如果客户端的 Socket 关闭的话，那么 readerLine的返回的内容是 null 的，也就不会进入这个循环了
-                       if(QUIT.equals(msg)) {
-                          System.out.println("客户端[" + socket.getPort + "]已断开");
-                          break;
-                       }
-                  }
-                }                
-             }
-         } catch (Exception e) {
-           e.printStackTrace();
-         } finally {
-            if (null != serverSocket) {
-               try {
-                  serverSocket.close();
-                  System.out.println("关闭ServerSocket");  
-               }catch(Exception e) {}
+                    System.out.println("客户端[" + socket.getPort() + "]:" + msg);
+                    // 回复客户端发送的消息
+                    writer.write("服务器:" + msg + "\n");
+                    // 缓冲区的数据发送出去
+                    writer.flush();
+
+                    // 查看客户端是否退出，其实这里的代码不用写，因为客户端的Socket关闭的话，那么readerLine的返回的内容是null，也就不会进入这个循环了
+                    if (QUIT.equals(msg)) {
+                        System.out.println("客户端[" + socket.getPort() + "]已断开");
+                        break;
+                    }
+                }
             }
-         }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 ```
 - 客户端
 ```java
-public class Client {
+package tk.deriwotua.socket.bio;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.Socket;
+
+/**
+ * BIO socket编程 客户端
+ */
+public class Client2 {
+
     public static void main(String[] args) {
-         final String QUIT = "quit";
-         final String DEFAULT_SERVER_HOST = "127.0.0.1";
-         final int DEFAULT_PORT = 8888;
-         Socket socket = null;
-         BufferedWriter writer;
-         try {
-            // 创建 socket
-            socket = new Socket(DEFAULT_SERVER_HOST, DEFAULT_PORT);
-            // 创建 IO 流
-            BufferedReader reader = 
-               new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            writer = 
-               new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        final String QUIT = "quit";
+        final String DEFAULT_SERVER_HOST = "127.0.0.1";
+        final int DEFAULT_PORT = 8888;
+
+        /**
+         * 创建socket 创建IO流
+         */
+        try (Socket socket = new Socket(DEFAULT_SERVER_HOST, DEFAULT_PORT);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));) {
+
             // 等待用户输入信息
-            BufferedRaeder consoleReader = 
-               new BufferedRreader(new InputStreamReader(System.in));
-            while(true) {
-               String input = consoleReader.readLine();
-              // 发送消息给服务器
-              writer.write(input + "\n");
-              writer.flush();
-              // 读取服务器返回的消息
-              String msg = reader.readLine();
-              System.out.println("" + msg); 
-              // 查看用户是否退出
-              if(QUIT.equals(input)) {
-                  break;
-              }
-            }            
-         } catch(IOException e) {
-            
-         } finall {
-           if (null != writer ) {
-              try {
-                writer.close();
-                System.out.println("关闭 Socket");     
-              } catch(){}              
-           }
+            BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
+
+            while (true) {
+                String input = consoleReader.readLine();
+
+                // 发送消息给服务器
+                writer.write(input + "\n");
+                writer.flush();
+
+                // 读取服务器返回的消息
+                String msg = reader.readLine();
+                System.out.println("" + msg);
+
+                // 查看用户是否退出
+                if(QUIT.equals(input)){
+                    break;
+                }
+            }
+        } catch (Exception e) {
         }
     }
 }
@@ -387,7 +452,7 @@ public class Client {
 ### 5.1 BIO编程模型简析
 jdk1.4 之前对 IO 的支持比较简单，都是使用 BIO，就是 Block IO 的模型来进行编码
 
-BIO 编程模型如图，acceptor 是阻塞的，那么新来的客户端是怎么处理得的？就是新建一个 Handler 的线程去处理，这样就不阻塞了当前的客户端了，所以第二个客户端就可以继续与服务器端发送消息。
+BIO 编程模型如图，acceptor线程专门处理客户端的连接不处理输入输出流阻塞式的，那么新来的客户端是怎么处理得的？就是新建一个 Handler 的线程去处理，即每个客户端对应一个Handler线程处理与客户端的通信。
 
 ![BIO编程模型](assets/BIO编程模型.png)
 
@@ -399,6 +464,8 @@ BIO 编程模型如图，acceptor 是阻塞的，那么新来的客户端是怎�
 - 每个用户发言都被转发给其他在线用户
 
 ### 5.3 多人聊天室设计
+
+服务端主线程中监听到客户端连接请求接受后创建客户端对应Handler线程处理与客户端通信
 
 Client1 发送消息的时候，Handler1 需要发送给其它客户端，因此需要存储一下所有客户端的列表的集合
 
@@ -738,7 +805,7 @@ public class ChatServer {
 
 回顾下 BIO 阻塞的部分
 - ServerSocket.accept()
-- InputStream.read()
+- InputStream.read() 
 - OutputStream.write()
 - 无法在同一个线程里处理多个Stream IO
 
@@ -757,18 +824,16 @@ NIO非阻塞式 New IO 或者 Non-Blocking IO，两种解释都是可以的
 
 ### 6.2 Buffer简析
 
-clear()
 
-compact()
 
-Channel 是双向的，即可以读也可以写，向 Channel 读或写都是通过 Buffer，可以理解为Buffer也是可以读和写
+Channel 是双向的，即可以读也可以写，向 Channel 读或写都是通过 Buffer，可以理解为Buffer也是双向可以读和写
 
 Buffer 其实就是内存上的一片可以读写的区域
 
 ![通道与缓冲区](assets/通道与缓冲区.png)
 
 Buffer 内部有三个主要的指针式的结构
-- `capacity` 代表Buffer的容量大小
+- `capacity` 代表Buffer缓冲区容量大小
 - `position` 指示目前所在的位置
 - `limit` 初始的时候位置与 `capacity` 相同
 
@@ -785,25 +850,26 @@ Buffer 内部有三个主要的指针式的结构
 - 往Buffer中写数据，空白格子部分假设是写入的数据
 
   ![缓冲区开始写入数据](assets/缓冲区开始写入数据.png)
-  
-- 然后想要读取刚刚写入的数据的时候需要用到 `flip`，就是翻转一下，写变为读模式
-  - 调整 `position` 指针位置到开始位置
-  - 调整 `limit` 指针位置到上次写入的结束位置
+
+- 然后想要读取刚刚写入的数据的时候需要用到 `flip`，就是翻转一下，使缓冲区由写模式变为读模式
+  - 调整 `position` 指针指向开始位置
+  - 调整 `limit` 指针指向上次写入结束位置
+  - `position`、`limit`指针指向的区间就是写模式往缓冲区写的数据
 
   ![缓冲区翻转](assets/缓冲区翻转.png)
 
-读取的模式
+调整完`position`、`limit`指针指向后可以理解为进入读模式
 ![缓冲区读模式](assets/缓冲区读模式.png)
 
-- 第一种读取的情况：一口气读完，读到limit指针的位置
+- 第一种读取的情况：一口气读完，读到`limit`指针指向位置
 
   ![缓冲区数据一次性读完](assets/缓冲区数据一次性读完.png)
 
-  - 这个时候想写数据了，需要 `clear()` 翻转。如图其实 `clear()` 只是移动了指针，并没有清除 buffer 里面的数据
+  - 这个时候想写数据了，需要 `clear()` 翻转。其实 `clear()` 只是改变了指针指向(创建时指向)，并没有清除 buffer 里面的数据，写的时候从开头写(复写)
   
   ![缓冲区清空仅仅改变指针位置](assets/缓冲区清空仅仅改变指针位置.png)
 
-- 另外的一种读取的数据的情况：读取部分数据后面未读的数据保留起来，以后来读，但是这个时候调整为写模式，希望的就是写完数据后，上次没有读完的数据依然能读取出来。`compact()` 方法就能达到这个目的
+- 另外的一种读取的数据的情况：读取部分数据后面未读的数据保留起来，以后来读，即读一般时调整为写模式，希望的就是写完数据后，上次没有读完的数据依然能读取出来。`compact()` 方法就能达到这个目的
   - 这里假设前3条数据是已读的，第4条数据是还没有来得及读完，但是又想在之后继续读取的数据。
 
   ![从缓冲区中读取部分数据在继续写](assets/从缓冲区中读取部分数据在继续写.png)
@@ -812,7 +878,7 @@ Buffer 内部有三个主要的指针式的结构
 
 ![compact未读置于起始position置于其后](assets/compact未读置于起始position置于其后.png)
 
-接下来，`limit`指针移动到与`capacity`同样的位置，之后由读模式翻转回写模式
+接下来，`limit`指针指向到与`capacity`同样的位置，之后由读模式翻转回写模式
 
 ![重置limit指针缓冲区读模式翻转回写模式](assets/重置limit指针缓冲区读模式翻转回写模式.png)
 
@@ -841,107 +907,168 @@ Channel 之间是可以传输数据
       // source 文件拷贝到 target 的文件中
       void copyFile(File source, File target);
   }
+  
+  package tk.deriwotua.filecopy;
+  
+  import java.io.*;
+  import java.nio.ByteBuffer;
+  import java.nio.channels.FileChannel;
+  
+  /**
+   * 文件拷贝
+   */
   public class FileCopyDemo {
   
-          private static void close(Closeable close) {
-             if(null != close) {
-                try{
-                   close.close();
-  }catch(Exception e){
-     e.printStackTrace();
-  }
-             }
-          }
-           
-          // 不使用用任何缓冲的流进行拷贝文件
-          private static FileCopyRunner noBufferStreamCopy = (source, target) -> {
-               InputStream fin = null;
-               OutputStream fout = null;
-               try {
-                   fin = new FileInputStream(source);
-                   fout = new FileOutputStream(target);
-                   int result;
-                   whie((result = fin.read()) != -1) {
-                      fout.write(result);
-                   }
-               } catch (Exception e) {
-                  e.printStackTrace(); 
-               } finally {
-                  close(fin); 
-                  close(fout);
-               }
-          };
-          
-          // 使用缓冲进行拷贝文件
-          private static FileCopyRunner bufferedStreamCopy = (source, target) -> {
-              InputStream fin = null;
-              OutputStream fout = null;
-              try {
-                 fin = new BufferedInputStream(new FileInputStream(source));
-                 fout = new OutputStream(new OutputStream(target));
-                 byte[] buffer = new byte[1024];
-                 int result;
-                 // 最多读取 1024 个字节，如最后一次，可能只剩 10 个字节，
-                 // result 就是 buffer 读取的字节数
-                 while((result != fin.read(buffer)) != -1) {
-                    fout.write(buffer, 0, result); 
-                 }                
-              }catch(Exception e) {
-                e.printStackTrace(); 
-              } finally {
-                close(fin);
-                close(fout);
-              }
-          };
+      /**
+       * 不使用用任何缓冲的流进行拷贝文件
+       *      一个字节一个字节拷贝
+       */
+      private static FileCopyRunner noBufferStreamCopy = (source, target) -> {
   
-          
-          // 使用 nio 的 buffer 进行拷贝文件
-          private static FileCopyRunner nioBufferCopy = (source, target) -> {
-              FileChannel fin = null;
-              FileChannel fout = null;
-              
-              try {
-                  fin = new FileInputStream(source).getChannel();
-                  fout = new FileInputStream(target).getChannel();
-                  ByteBuffer buffer = ByteBuffer.allocate(1024);
-                  while(fin.read(buffer) != -1) {
-                     buffer.flip(); // 转换为写的模式
-                     while(buffer.hasRemaing())  {
-                          fout.write(buffer);
-                     }
-                     buffer.clear(); // 调整为读模式
-                  }
-              } catch (Exception e) {
-                 e.printStackTrace();
-              } finally {
-                 close(fin);
-                 close(fout);
+          try (InputStream fin = new FileInputStream(source);
+               OutputStream fout = new FileOutputStream(target);){
+  
+              int result;
+              while ((result = fin.read()) != -1) {
+                  fout.write(result);
               }
-          };
-          
-          // 使用 nio 直接进行拷贝
-          private static FileCopyRunner nioTransferCopy = (source, target) -> {
-              FileChannel fin = null;
-              FileChannel fout = null;
-              
-              try {
-                  fin = new FileInputStream(source).getChannel();
-                  fout = new FileInputStream(target).getChannel();
-                  
-                  long transferred = 0L;
-                  long size = fin.size();
-                  while(transferred != size) {  
-                    // 如果拷贝的大小没有达到源文件的大小就一直拷贝
-                    transferred += fin.transerTo(0, size, fout);
-                  }
-                                  
-              } catch (Exception e) {
-                 e.printStackTrace();
-              } finally {
-                 close(fin);
-                 close(fout);
+          } catch (Exception e) {
+              e.printStackTrace();
+          }
+      };
+  
+      /**
+       * 使用缓冲进行拷贝文件
+       *      一次性读取缓冲区大小的数据
+       */
+      private static FileCopyRunner bufferStreamCopy = (source, target) -> {
+          try (InputStream fin = new BufferedInputStream(new FileInputStream(source));
+               OutputStream fout = new BufferedOutputStream(new FileOutputStream(target));) {
+  
+              byte[] buffer = new byte[1024];
+  
+              // 最多读取1024个字节，如最后一次，可能只剩余10个字节，result就是buffer读取的字节数
+              int result;
+              while ((result = fin.read(buffer)) != -1) {
+                  fout.write(buffer, 0, result);
               }
-          };
+          } catch (Exception e) {
+              e.printStackTrace();
+          }
+      };
+  
+      /**
+       * 使用 nio 的 buffer 进行拷贝文件
+       */
+      private static FileCopyRunner nioBufferCopy = (source, target) -> {
+          try (FileChannel fin = new FileInputStream(source).getChannel();
+               FileChannel fout = new FileOutputStream(target).getChannel();) {
+              /**
+               * NIO提供各种各样buffer 这里使用byte buffer指定分配大小
+               */
+              ByteBuffer buffer = ByteBuffer.allocate(1024);
+              while (fin.read(buffer) != -1) {
+                  // 翻转读模式转换为写的模式
+                  buffer.flip();
+                  // 判断buffer中是否还有可以读的元素
+                  // 即缓冲区当前position指针指向和limit指针指向之间是否存在任何元素
+                  while (buffer.hasRemaining()) {
+                      // 通过循环一次读取完
+                      fout.write(buffer);
+                  }
+                  // 调整为读模式
+                  buffer.clear();
+              }
+              /**
+               * 从通道里读取数据其实就是对缓冲区的写操作把数据暂存在缓冲区
+               * 往通道里写数据其实就是对缓冲区的读操作把缓冲区数据读取到通道里
+               */
+          } catch (Exception e) {
+              e.printStackTrace();
+          }
+      };
+  
+      /**
+       * 使用 nio 直接进行拷贝
+       */
+      private static FileCopyRunner nioTransferCopy = (source, target) -> {
+          try (FileChannel fin = new FileInputStream(source).getChannel();
+               FileChannel fout = new FileOutputStream(target).getChannel();) {
+              // 已传输字节
+              long transferred = 0L;
+              // 需要传输大小
+              long size = fin.size();
+              while (transferred != size) {
+                  /**
+                   * 将该通道文件的字节传输到给定的可写字节通道
+                   * fin 数据从 指定位置 传输 多大数据 到 fout
+                   * transferTo 并不能保证100%完整拷贝数据需要while循环
+                   *  如果拷贝的大小没有达到源文件的大小就一直拷贝
+                   */
+                  transferred += fin.transferTo(0, size, fout);
+              }
+          } catch (Exception e) {
+              e.printStackTrace();
+          }
+      };
+  
+      /**
+       * 执行5次，之后求时间平均数
+       */
+      private static final int ROUNDS = 5;
+  
+      /**
+       * 测试文件拷贝效率，计算平均值
+       *
+       * @param test
+       * @param source
+       * @param target
+       */
+      private static void benchMark(FileCopyRunner test, File source, File target) {
+          // 总时间
+          long elapsed = 0L;
+          for (int i = 0; i < ROUNDS; i++) {
+              long startTime = System.currentTimeMillis();
+              test.copyFile(source, target);
+              elapsed += System.currentTimeMillis() - startTime;
+              target.delete();
+          }
+          System.out.println(test + ":" + elapsed / ROUNDS);
+      }
+  
+      public static void main(String[] args) {
+  
+          // 100k
+          File smallFile = new File("风控规则自动化测试报文4.json");
+          File smallFileCopy = new File("a.json");
+  
+          System.out.println("---Copying small file---");
+          benchMark(noBufferStreamCopy, smallFile, smallFileCopy);
+          benchMark(bufferStreamCopy, smallFile, smallFileCopy);
+          benchMark(nioBufferCopy, smallFile, smallFileCopy);
+          benchMark(nioTransferCopy, smallFile, smallFileCopy);
+  
+          // 13M，发现没有缓冲的noBufferStreamCopy巨慢，运行就跳过吧
+          File bigFile = new File("Java程序的151个建议.pdf");
+          File bigFileCopy = new File("b.pdf");
+  
+          System.out.println("---Copying bigFile file---");
+  //        benchMark(noBufferStreamCopy, bigFile, bigFileCopy);
+          benchMark(bufferStreamCopy, bigFile, bigFileCopy);
+          benchMark(nioBufferCopy, bigFile, bigFileCopy);
+          benchMark(nioTransferCopy, bigFile, bigFileCopy);
+  
+          // 47M
+          File hugeFile = new File("Spring Cloud微服务实战.pdf");
+          File hugeFileCopy = new File("Desktop/c.pdf");
+  
+          System.out.println("---Copying hugeFile file---");
+  //        benchMark(noBufferStreamCopy, hugeFile, hugeFileCopy);
+          benchMark(bufferStreamCopy, hugeFile, hugeFileCopy);
+          benchMark(nioBufferCopy, hugeFile, hugeFileCopy);
+          benchMark(nioTransferCopy, hugeFile, hugeFileCopy);
+      }
+  
   }
   ```
 
@@ -1003,7 +1130,7 @@ public class FileCopyDemo {
 
 ### 6.6 Selector 简析
 
-通道如果是处于空闲状态的时候，`selector` 可以监听多个通道的是否是空闲状态
+在进行读写时如果通道是处于空闲状态没有数据时就需要手动不断询问是否存在数据，这时如果能有监听方式当由数据时自动通知就完美了。`selector` 就可以监听多个通道的状态
 
 首先 Channel 需要注册在 Selector 上
 
@@ -1011,22 +1138,41 @@ public class FileCopyDemo {
 
 根据 Channel 的不同状态，就可以对 Channel 进行不同的操作。
 
+- `connect` 事件 客户端与服务端建立了连接处于连接状态
+- `accept` 事件  服务端接受的客户端的连接请求ServerChannel处于接受状态
+- `read` 事件 当通道有可读数据后通道就处于可读状态(或者说传送过来了数据发生了一个读事件)
+- `write` 事件 当通道可以往里写数据时通道就处于可写状态
+- 当然也可能没有发生任何事件处于空闲状态
+
 ![通道状态](assets/通道状态.png)
 
+Selector 上注册其所监听的 Channel 即得到 SelectionKey 对象，本身 SelectionKey 是 Channel 注册在 Selector 上的id。通过 SelectionKey 可以有以下操作
 
-Selector 上的具体方法后面用具体的实例来演示及 SelectionKey 的作用。
+- `interestOps()` 一组 Channel 注册在 Selector 上需要监听的状态
+  - 在 Channel 注册 Selector 上时可以指定需要监听的状态
+- `readyOps()` SelectionKey 注册的状态中有哪些处于已经准备好可操作的状态
+- `channel()` 获取注册的 Channel
+- `selector()` 获取在哪个 Selector 上完成的注册
+- `attachment()` 注册在 Selector 上的 Channel对象可以给其附加一个对象传参
 
 ![NIO选择器SelectionKey](assets/NIO选择器SelectorKey.png)
 
-假设这个时候已经有了 Selector 了。
+假设 Selector 上注册了`Connect` 事件 Channel 、`READ` 事件 Channel、`WRITE`事件 Channel。
 
 ![选择器监听](assets/选择器监听.png)
 
-下图有一个 Channel 变为 connect 的状态，拿到 SelectionKey 就可以进一步拿到其对象。
+当`Connect` 事件 Channel 变为 `connect`的状态
+
+- 此时 `Selector#select()` 就为 `1`有一个 Channel 处于可操作的状态
+- 进而就可以通过 Selector 获取到对应可操作状态的 SelectionKey 进行进一步处理。
+- 当处理完后 Channel 当前的 CONNECT 事件状态还是处于可操作的状态并不会自动重置为不可操作的状态需要手动重置为不可操作的状态
 
 ![连接事件](assets/连接事件.png)
 
-如下一步操作，第二个 Channel 进入了 read 状态，第三个 Channel 进入了 write 状态。
+而后第二个 Channel 进入了 `read` 状态，第三个 Channel 进入了 `write` 状态。
+
+* 此时 `Selector#select()` 就为 `2`有两个处于可操作的状态
+* 进而就可以通过 Selector 获取到对应可操作状态的 SelectionKey 进行进一步处理。
 
 ![读写事件](assets/读写事件.png)
 
@@ -1034,37 +1180,38 @@ Selector 上的具体方法后面用具体的实例来演示及 SelectionKey 的
 
 ### 7.1 NIO编程模型
 
-使用 Selector 来监视各个不同的 Channel（不同的聊天室的客户）
+使用 Selector 来监视各个不同的 客户端Channel
 
-注册 Accept 事件，让 Selector 监视 Accept 事件
-- 当有客户端发送连接请求，服务接受了连接请求的时候，相当于触发了这个 Selector 上的 Accept 事件，效果与 BIO 编程模型上的 accept() 函数的效果是一样的
+ServerSocketChannel 启动后注册 Accept 事件到 Selector上，让 Selector 监视ServerSocketChannel 上 Accept 事件
+- 当有客户端发送连接请求，服务接受了连接请求的时候，相当于触发了 Selector 上的 Accept 事件，效果与 BIO 编程模型上的 accept() 函数的效果是一样的
 
 ![选择器注册某事件即监听该事件](assets/选择器注册某事件即监听该事件.png)
 
-接受了客户端的连接，触发了 Accept 事件后使用 handles 来处理建立连接的客户端
+接受了客户端的连接，Selector 就可以监控到 ServerSocketChannel 上触发了 Accept 事件后服务端需要处理这个事件可以使用 handles 来处理建立连接的客户端
 
 ![客户端建立连接](assets/客户端建立连接.png)
 
-之后为新连接的客户端再到 Selector 上注册一个 read 事件
-- 意思是告诉 Selector 有一个新的客户与建立了连接，Selector 要监视这个客户的 socket channel 通道上是否触发了 read 事件，即在客户向服务器发送了数据之后，那么在这个客户的 socket
- channel 上就有可供服务器读取的数据。
-- 这里处理都是在 Selector 同一个线程中所进行的（之前使用bio编写的多人聊天的案例中 accept 是在主线程中的，之后又开启了一个新的线程等待客户端向服务端发送消息，即使客户端什么都没有做，也必须阻塞在哪里等待客户发送消息）
+即为新连接的 SoketChannel 客户端通道再到 Selector 上注册一个 `read` 事件
+- 意思是告诉 Selector 有一个新的客户端与建立了连接，Selector 要监视这个客户端的 socket channel 通道上是否触发了 `read` 事件，即在客户端向服务器发送了数据之后，那么在这个客户端的 socket channel 上就有可供服务器读取的数据。
+- 这里处理都是在 Selector 同一个线程中所进行的（之前使用bio编写的多人聊天的案例中 accept 是在主线程中的，之后又开启新的线程等待客户端向服务端发送消息，即使客户端什么都没有做，也必须阻塞在哪里等待客户发送消息）不需要开启新线程
 
 ![注册读事件](assets/注册读事件.png)
 
-各个 Channel 读和写都是非阻塞式的，但是 Selector 自己本身监听各个通道上面是否发生事件Selector#select()是阻塞式的，如果这个 Selector 所监听的所有的通道上边都没有触发任何所监视的事件，那么会阻塞Selector#select()方法的调用。
+各个 Channel 读和写都是非阻塞式的，但是 Selector 自己本身监听各个通道上面是否发生事件`Selector#select()`是阻塞式的，如果这个 Selector 所监听的所有的通道上边都没有触发任何所监视的事件，那么会阻塞`Selector#select()`方法的调用返回。
 
-接下来假如现在又有第二个客户想要加入多人聊天室，这个客户端首先还是向服务端发送一个连接请求。这样在服务器端又触发了 server socket channel 这条通道上面的 accept 事件，因为 server socket 首先要接受第二个客户端的连接请求，之后要在 Selector 上面再注册一个 read 事件要求 Selector 开始监听新连接的第二个客户端所使用的这一条 socket channel 上面是否发生了 read 可读事件。即一个客户端有一个 socket channel 通道，两个客户端就有两个 socket channel 通道，这个就是使用nio编程模型来用一个 Selector 对象在一个线程里边监听以及处理多个通道的IO的操作
+接下来假如现在又有第二个客户端想要加入多人聊天室，这个客户端首先还是向服务端发送一个连接请求。这样在服务器端又触发了 server socket channel 这条通道上面的 `accept` 事件，因为 server socket 首先要接受第二个客户端的连接请求，之后要在 Selector 上面再注册一个 `read` 事件要求 Selector 开始监听新连接的第二个客户端所使用的这一条 socket channel 上面是否发生了 `read` 可读事件。即一个客户端有一个 socket channel 通道，两个客户端就有两个 socket channel 通道，这个就是使用nio编程模型来用一个 Selector 对象在一个线程里边监听以及处理多个通道的IO的操作
 
 ![NIO编程模型](assets/NIO编程模型.png)
 
-刚刚的例子，只是讲了两个客户。当然可以应付更多的客户。还有对于刚刚的例子，每一次都只触发了一个事件。这个主要是因为演示上会比较清晰。要明白的，所有注册在 Selector 上的事件。并不是说每一次调用 Selector#select()方法，只能返回一个被触发的事件。如果当前有多个事件同时被触发，那么调用 Selector#select()方法，就会把所有被触发的事件全部返回。
+刚刚的例子，只是讲了两个客户端。当然可以应付更多的客户端。还有对于刚刚的例子，每一次都只触发了一个事件。这个主要是因为演示上会比较清晰。要明白的，所有注册在 Selector 上的事件。并不是说每一次调用 `Selector#select()`方法，只能返回一个被触发的事件。如果当前有多个事件同时被触发，那么调用 `Selector#select()`方法，就会把所有被触发的事件全部返回。
 
 
 
 ### 7.2 NIO 模型实现 ChatServer
 
 ```java
+package tk.deriwotua.socket.nio.chat;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -1075,8 +1222,6 @@ import java.util.Set;
 
 /**
  * 使用nio编程模型实现多人聊天室-服务端
- *
- * @author caojx created on 2020/6/23 6:50 下午
  */
 public class ChatServer {
 
@@ -1146,7 +1291,8 @@ public class ChatServer {
             // 进入监听模式
             while (true) {
                 // select()函数是阻塞式的
-                selector.select();
+                int selected = selector.select();
+                System.out.println(selected);
                 // 获取监听事件，每一个被触发的事件与他相关的信息都包装在SelectionKey对象中
                 Set<SelectionKey> selectionKeys = selector.selectedKeys();
                 for (SelectionKey selectionKey : selectionKeys) {
@@ -1193,7 +1339,12 @@ public class ChatServer {
             if (fwMsg.isEmpty()) {
                 // 客户端异常，不再监听该客户端可能发送过来的消息
                 selectionKey.cancel();
-                // 事件发生了变化，更新selector监听的事件
+                /**
+                 * 由于 cancel 掉了 selectionKey 上事件监听
+                 * 但是 服务端通道如果是阻塞的话 ServerSocketChannel#select() 这里还在继续阻塞监听
+                 * 所以 需要通知 ServerSocketChannel#select() 返回不再死等
+                 * wakeup() 干的就是这事
+                 */
                 selector.wakeup();
             } else {
                 // 消息转发给其他在线的客户端
@@ -1217,7 +1368,7 @@ public class ChatServer {
      */
     private void forwardMessage(SocketChannel client, String fwMsg) throws IOException {
         // selector.keys() 会返回所有已经注册在selector上的SelectionKey的集合，
-        // 我们可以认为注册在selector上的SelectionKey即是当前在线的客户端
+        // 可以认为注册在selector上的SelectionKey即是当前在线的客户端
         for (SelectionKey key : selector.keys()) {
 
             // 跳过服务器端的通道 ServerSocketChannel
@@ -1225,11 +1376,12 @@ public class ChatServer {
             if (connectedClient instanceof ServerSocketChannel) {
                 continue;
             }
-            // 检测channel没有被关闭，且通道不是自己本身
+            // 检测channel没有被关闭或事件监听没有被取消或Selector没有被关闭，且通道不是自己本身
             if (key.isValid() && !client.equals(connectedClient)) {
                 wBeBuffer.clear();
                 wBeBuffer.put(charset.encode(fwMsg));
                 wBeBuffer.flip();
+                // 直到缓冲区数据都被写入通道
                 while (wBeBuffer.hasRemaining()) {
                     ((SocketChannel) connectedClient).write(wBeBuffer);
                 }
@@ -1249,6 +1401,7 @@ public class ChatServer {
     private String receive(SocketChannel client) throws IOException {
         // 清理残留的内容
         rBuffer.clear();
+        // 一次性读取完
         while (client.read(rBuffer) > 0) ;
         // 写模式切换回读模式
         rBuffer.flip();
@@ -1280,6 +1433,8 @@ public class ChatServer {
 ### 7.3 NIO 模型实现 ChatClient
 
 ```java
+package tk.deriwotua.socket.nio.chat;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -1293,8 +1448,6 @@ import java.util.Set;
 
 /**
  * 使用nio编程模型实现多人聊天室-客户端
- *
- * @author caojx created on 2020/6/26 6:50 下午
  */
 public class ChatClient {
 
@@ -1372,9 +1525,13 @@ public class ChatClient {
         if (selectionKey.isConnectable()) {
             // 获取selectionKey上对应的客户端通道
             SocketChannel client = (SocketChannel) selectionKey.channel();
-            // 请求是否已经链接
+            /**
+             * 当服务端 ServerSocketChannel#accept() 后只是完成通道初始化还没有完全的完成建立连接的过程
+             * 其实是处于 connectionPending() 状态
+             * 请求是否已经链接
+             */
             if (client.isConnectionPending()) {
-                // 正式建立链接
+                // 连接建立已就绪仅需finishConnect完成建立正式建立链接
                 client.finishConnect();
 
                 // 处理用户的输入信息
@@ -1475,14 +1632,14 @@ public class ChatClient {
 ### 7.4 NIO模型实现UserInputHandler
 
 ```java
+package tk.deriwotua.socket.nio.chat;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**
  * 使用nio编程模型实现多人聊天室-处理用户输入信息
- *
- * @author caojx created on 2020/6/26 6:55 下午
  */
 public class UserInputHandler implements Runnable {
 
@@ -1518,13 +1675,19 @@ public class UserInputHandler implements Runnable {
 
 ![NIO多人聊天](assets/NIO多人聊天.png)
 
+
+
+
+
 ## 8.JavaIO的“后世”之师：AIO异步通信模型
 
 JDK中AIO核心类及实现原理并梳理AIO编程步骤。
 
-通过BIO和NIO这两大模型，对于这些不同的网络编程模型。可以再用另外一个新的角度来总结和比对一下这些模型，然后再引入第三个AIO模型。 之前都是在这个应用程序的层面实现网络编程模型。其实还可以再深入一步。应用程序层面，一定要通过和操作系统的内核层面进行一定的互动，才能真正的完成信息或者数据在网络编程当中实现真正的通信和交互。一般来说，想从网络中的其他计算机或者其他的进程收到数据，这个数据首先通过物理的连接到达机器，然后通过网卡设备接收数据，之后数据会被拷贝到操作系统内核的缓冲区，之后会从内核的缓冲区再复制到应用程序所对应的缓冲区，然后才可以从应用程序取得这个数据
+通过BIO和NIO这两大模型，对于这些不同的网络编程模型。可以再用另外一个新的角度来总结和比对一下这些模型，然后再引入第三个AIO模型。 之前都是在应用程序的层面实现网络编程模型。其实还可以再深入一步。
 
-在这个更深层一点的这种数据的交互当中，I/O模型是以什么样的一种方法来体现呢？深入到内核层面，它所支持的I/O模型也和应用程序层面的BIO、NIO、AIO几大模型有对应之处。首先从操作系统的内核角度，首先支持的最基本的I/O模型就是阻塞式I/O，这个阻塞是I/O它是一个什么样的流程呢？
+应用程序层面，一定要通过和操作系统的内核层面进行一定的互动，才能真正的完成信息或者数据在网络编程当中实现真正的通信和交互。一般来说，想从网络中的其他计算机或者其他的进程收到数据，这个数据首先通过物理的连接到达机器，然后通过网卡设备接收数据，之后数据会被拷贝到操作系统内核的缓冲区，之后会从内核的缓冲区再复制到应用程序所对应的缓冲区，然后才可以从应用程序取得这个数据。
+
+这种数据的交互当中，I/O模型是以什么样的方法来体现呢？深入到内核层面，它所支持的I/O模型也和应用程序层面的BIO、NIO、AIO几大模型有对应之处。首先从操作系统的内核角度，首先支持的最基本的I/O模型就是阻塞式I/O，那么阻塞是I/O又是什么样的流程呢？
 
 首先从应用程序层面，想要看一看有没有收到从网络中传送给这个应用程序进程的新的数据，需要使用一些系统调用的方法，一些系统调用函数去和这个操作系统的内核进行沟通，不同的操作系统的内核的实际的函数的实现上可能会有所区别，不过从模型的角度上来讲还是大同小异，下边基于unix的操作系统作为一个例子对各种IO模型进行分析
 
@@ -1551,7 +1714,7 @@ JDK中AIO核心类及实现原理并梳理AIO编程步骤。
 ![非阻塞式IO](assets/非阻塞式IO.png)
 
 I/O多路复用
-- I/O多路复用对应的就是通过 Selector选择器监听其注册所有通道的事件变更NIO的模式。
+- I/O多路复用对应的就是通过 Selector选择器监听其注册所有NIO通道的事件变更的模式。
 - 应用程序端发起新的询问是不是又数据可以进行操作了，如果数据没有准备好，并不会使用上边的纯粹的非阻塞式I/O模型里边所使用的那种不停的询问方法，而是告诉内核来监听这个I/O通道，直到有了数据准备好在那里可以供应用程序进行操作了，再来通知应用程序。
 - 这个监听过程，就好像使用的`Selector#select()`方法，过程本身是阻塞式的，直到所监听的这个I/O
 真的收到了数据，而且这个数据已经在缓冲区已经准备好了，可以供应用程序进行一步操作。此时监听系统调用的就会返回给应用程序。所监听的这个I/O有新的状态变化了。这里只是返回状态的变更并不是把数据复制给应用程序。接下来还要再进行系统调用，把这个已经在内核缓冲区准备好的数据复制到应用程序可以操作的缓冲区。而后才算是读取到数据。这样的模型叫做I/O的多路复用。
@@ -1562,7 +1725,7 @@ I/O多路复用
 
 AIO异步I/O
 - 上面描述的都是同步IO模型，下面就是真正的异步IO模型
-- 不管是阻塞式IO还是非阻塞式IO还是IO多路复用。其实都可以算作同步IO模型。在发起系统调用后不管在发起调用的当时数据有没有在内核的缓冲区准备好也可立即返回系统调用。只不过需要去轮询系统调用，否则没有办法收到数据。之所以说是同步的。就是因为等待数据，必须要再发起新的系统调用，再次询问内核数据是否准备好。主动二次调用是没有办法被省略，而非内核数据准备好，会自动通知。阻塞式IO还是非阻塞式IO还是IO多路复用这三种操作系统内核的I/O模型里，都是必须要通过发起新的调用直到获取到数据。
+- 不管是阻塞式IO还是非阻塞式IO还是IO多路复用。其实都可以算作同步IO模型。在发起系统调用后不管在发起调用的当时数据有没有在内核的缓冲区准备好也可立即返回系统调用。只不过需要去轮询发起新的系统调用，否则没有办法收到数据。之所以说是同步的。就是因为等待数据，必须要再发起新的系统调用，再次询问内核数据是否准备好。主动二次调用是没有办法被省略，而非内核数据准备好，会自动通知。阻塞式IO还是非阻塞式IO还是IO多路复用这三种操作系统内核的I/O模型里，都是必须要通过发起新的调用直到获取到数据。
 - 异步IO模型流程。首先应用程序层面发起系统调用，然后询问内核数据有没有准备好，可以让应用程序进行接下的处理。如果没有立即返回不会阻塞等待。此后应用程序层面不需要发起新的系统调用。当收到数据操作系统自动把内核缓冲区的数据复制到应用程序所对应的缓冲区数据完全准备好后，内核会发送一个信号，来通知应用程序。
 - 异步IO模型模型里，异步体现在一开始应用程序发起了系统调要用数据没有准备好返回了不需要再发起新一个系统调用内核把数据准备好后会来通知。在收到通知后，再处理数据逻辑。这就是和阻塞式IO还是非阻塞式IO还是IO多路复用这三种内核的I/O模型的最大的区别本质上都是同步的模型。
 
@@ -1573,23 +1736,33 @@ AIO异步I/O
 AIO中的异步操作
 ![AIO异步操作](assets/AIO异步操作.png)
 
-通过 Future 进行异步操作
-![通过Future进行异步操作](assets/通过Future进行异步操作.png)
+异步操作两种方法
 
-通过 CompletionHandler 会有一个回调方法，当数据真正有的时候，就会进行回调方法的执行
-![回调方法](assets/回调方法.png)
+- 通过返回 Future 对象完成异步调用，异步调用返回的并不是一个结果，结果可能还没产生。 Future 就是一个未来时间完成任务抽象结果对象。
+  - 获得 Future对象后可以通过 `Future#get()`方法阻塞式等待直到任务完成
+
+  ![通过Future进行异步操作](assets/通过Future进行异步操作.png)  
+  
+- 通过传入 CompletionHandler 回调方法，当异步操作完成后自动调用回调方法完成后续操作
+
+  ![回调方法](assets/回调方法.png)
 
 ### 8.3 服务端实现-EchoServer
 
 实现一个简单的 EchoServer 和 EchoClient 的代码，客户端发送消息给服务端，服务端直接就把消息返回给客户端
-- 服务器端使用回调的方式来实现异步
-- 客户端使用 Future 的方式来实现异步
-- attachment 附加信息，可以是任意对象类型，这里用于告诉 ClientHandler 是写操作还是读操作
+- 服务端使用`CompletionHandler#callback()`回调的方式来实现异步
 
-accept 中的 Handler 是在哪里的线程执行了？
-- AsynchronousChannelGroup 这个就类似于线程池，例子中使用默认的 group，也可以自定义 group 来绑定到特定的 channel 上面去。
+  - 通过 `attachment` 附加信息，向回调方法传参
+
+  - 服务端在创建异步服务端通道时默认会创建 `AsynchronousChannelGroup` 这个类似线程池对象和异步通道绑定，然后在执行`CompletionHandler#callback()`回调时向其申请空闲子线程执行回调
+
+- 客户端使用 `Future` 的方式来实现异步
+
+
 
 ```java
+package tk.deriwotua.socket.aio.echo;
+
 import java.io.Closeable;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -1600,17 +1773,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 服务器端使用回调的方式来实现异步-aio
+ * 服务端使用CompletionHandler#callback()回调方式实现AIO
+ *  与客户端使用 Future 的方式来实现AIO做对比
+ *  CompletionHandler#callback() 执行在 AsynchronousChannelGroup 线程完成
  */
 public class EchoServer {
     private static final String LOCALHOST = "localhost";
     private static final int DEFAULT_PORT = 8888;
 
     /**
-     * 服务器端的异步通道
+     * 服务端异步通道
      */
     AsynchronousServerSocketChannel serverChannel;
-
 
     /**
      * 关闭资源
@@ -1630,22 +1804,32 @@ public class EchoServer {
 
     public void start() {
         try {
-            // 绑定监听端口
-            // 里面有一个AsynchronousChannelGroup，类似一个线程池，提供一些异步的通道，可以共享的一些系统资源
+            /**
+             * 通过静态open()方法开启 服务端异步通道时底层 会自动创建默认 AsynchronousChannelGroup 类似一个线程池
+             * 与 AsynchronousServerSocketChannel 绑定当然也可以指定自定义的 AsynchronousChannelGroup
+             * AsynchronousChannelGroup 提供一些异步通道、可以共享系统资源
+             *      比如 异步调用后需要通过 CompletionHandler#callback() 处理结果不可能在主线程执行回调
+             *          都是通过向 AsynchronousServerSocketChannel 线程池申请子线程完成
+             *
+             */
             serverChannel = AsynchronousServerSocketChannel.open();
             serverChannel.bind(new InetSocketAddress(LOCALHOST, DEFAULT_PORT));
             System.out.println("启动服务器，监听端口：" + DEFAULT_PORT);
 
-            /*
-             * 等待并接收新的客户端的连接请求由于 serverChannel.accept()是异步的调用，即等不到真正的结果完成，
-             * 也就是说我在调用serverChannel.accept()的时候可能完全没有客户端发送过来连接请求，
-             * 即使这样，我们的调用也会立即返回，因为他是异步的调用，返回之后，我们要等到直到有客户端
-             * 发来连接请求的时候，我们定义的AcceptHandler里边的回调函数才会被系统调用，
-             * 即我们要保证我们服务器端的主线程还在工作，所以需要将 serverChannel.accept(null, new AcceptHandler()); 放到while循环中
+            /**
+             * 等待并接收新的客户端的连接请求由于 AsynchronousServerSocketChannel#accept()是异步的调用，即等不到真正的结果完成，
+             * 也就是说我在调用 AsynchronousServerSocketChannel#accept() 时可能完全没有客户端发送过来连接请求，
+             * 即使这样，调用也会立即返回，因为是异步的调用，返回之后，要等到直到有客户端
+             * 发来连接请求的时候，定义的 AcceptHandler 里边的回调函数才会被系统调用，
+             * 即要保证服务的主线程还在工作，所以需要将 serverChannel.accept(null, new AcceptHandler()); 放到while循环中
              */
+            // serverChannel.accept(null, new AcceptHandler());
+
             while (true) {
-                // attachment：任意对象，辅助信息
-                // AcceptHandler：CompletionHandler的实现，用来处理accept结束时的结果
+                /**
+                 * attachment：附加信息，可以是任意对象类型 回调方法传参
+                 * AcceptHandler：CompletionHandler的实现，用来处理accept结束时的结果
+                 */
                 serverChannel.accept(null, new AcceptHandler());
                 // 阻塞式调用，避免while循环过于频繁
                 System.in.read();
@@ -1658,7 +1842,8 @@ public class EchoServer {
     }
 
     /**
-     * 创建服务端的AcceptHandler
+     * AsynchronousServerSocketChannel#accept() 服务端异步接受客户端建立连接后
+     * 通过CompletionHandler#callback()回调方式处理后续对结果操作
      * <p>
      * 由AsynchronousChannelGroup中的线程回调
      */
@@ -1667,55 +1852,91 @@ public class EchoServer {
         /**
          * 异步调用函数成功返回时调用
          *
-         * @param result     与服务端建立连接的异步的客户端通道
-         * @param attachment 额外的信息或数据
+         * @param result     与服务端建立连接的异步的客户端通道(泛型指定结果类型)
+         * @param attachment 额外的信息或数据(泛型指定附件类型)
          */
         @Override
         public void completed(AsynchronousSocketChannel result, Object attachment) {
+            /**
+             * 服务端未关闭是持续监听客户端来连接的请求
+             *  当连接触发后回调函数里重置服务端异步通道事件
+             *  和之前Zookeeper里Watcher监视器注册只单次有效类似需要再次注册
+             */
             if (serverChannel.isOpen()) {
-                // 服务端接着等待下一个客户端来连接的请求
-                serverChannel.accept(null, this);  // 底层限制了accept里边调用accept的层级，保证了不会出现 stackOverflow 的错误
+                // 底层限制了accept里边回调里调用accept的层级，保证了不会出现 stackOverflow 的错误
+                serverChannel.accept(null, this);
             }
 
             // 处理读写操作
             AsynchronousSocketChannel clientChannel = result;
+            // 客户端异步通道未关闭且处于可操作的状态
             if (null != clientChannel && clientChannel.isOpen()) {
+                // 异步每步操作都不是实时返回结果
+                // 这里异步从客户端通道读数据也是一样，就需要设置读完成后CompletionHandler#callback()
                 ClientHandler handler = new ClientHandler(clientChannel);
                 ByteBuffer buffer = ByteBuffer.allocate(1024);
+                /**
+                 * 读完成后回调方法传参
+                 *  区分客户端异步通道回调所触发读写事件
+                 *  及所读取到的数据
+                 */
                 Map<String, Object> attachmentInfo = new HashMap();
                 attachmentInfo.put("type", "read");
                 attachmentInfo.put("buffer", buffer);
 
-                // 读取客户端发送的消息到buffer中，并交给ClientHandler处理把消息转发回客户端
+                /**
+                 * 读取客户端发送的消息到buffer中，并交给ClientHandler处理把消息转发回客户端
+                 *  读取数据写入 buffer 缓冲区
+                 *  把当前事件和读取到的数据缓冲区作为 attachmentInfo 附件参数传递到读完通道数据回调方法里
+                 *  异步读取通道数据当读取完毕后回调 handler 里回调方法
+                 */
                 clientChannel.read(buffer, attachmentInfo, handler);
+                // NIO 中 读取时 SocketChannel#read(rBuffer) > 0 确保通道数据都读取到缓冲区 AIO里是否也需要？？？
+                // 还有通道里数据字节要是大于缓冲区大小呢？？？
             }
         }
 
         /**
-         * 异步调用失败的时候调用
+         * 异步调用失败时触发
          *
          * @param exc
          * @param attachment
          */
         @Override
         public void failed(Throwable exc, Object attachment) {
-            // 处理一些错误的情况
+            // 处理异步调用失败异常
         }
     }
 
-    /***
-     * 创建客户端的ClientHandler
+    /**
+     * AsynchronousServerSocketChannel#accept() 服务端异步接受客户端建立连接后获取到AsynchronousSocketChannel客户端异步通道
+     * 而后 AsynchronousSocketChannel#read() 异步读取数据完毕后
+     *      亦或 AsynchronousSocketChannel#write() 异步写取数据完毕后
+     * 通过CompletionHandler#callback()回调方式处理后续对结果操作
+     * <p>
+     * 由AsynchronousChannelGroup中的线程回调
      */
     private class ClientHandler implements CompletionHandler<Integer, Object> {
 
+        /**
+         * 与客户端建立的异步通道
+         */
         private AsynchronousSocketChannel clientChannel;
 
         public ClientHandler(AsynchronousSocketChannel clientChannel) {
             this.clientChannel = clientChannel;
         }
 
+        /**
+         * 异步执行成功后回调函数
+         * @param result    从通道里读取到的数据字节数(泛型指定结果类型)
+         * @param attachment 额外的信息或数据(泛型指定附件类型)
+         */
         @Override
         public void completed(Integer result, Object attachment) {
+            /**
+             * 从客户端通道读取到的数据再回写回去
+             */
             Map<String, Object> info = (Map<String, Object>) attachment;
             // 判断是读操作还是写操作
             String type = (String) info.get("type");
@@ -1725,7 +1946,10 @@ public class EchoServer {
                 // 将 buffer 从写变为读模式
                 buffer.flip();
                 info.put("type", "write");
+                // 在 NIO 中写时通过 ByteBuffer#hasRemaining() 判读保证缓冲区数据全部写入到通道AIO是否也需要？？？
+                // 还有通道里数据字节要是大于缓冲区大小呢？？？
                 clientChannel.write(buffer, info, this);
+                // 数据写后重置缓冲区指针
                 buffer.clear();
             }
             // 如果之前已经把客户端发送过来的数据又重新发回给了客户端，则继续去调用read函数，继续去监听客户端发送过来的数据
@@ -1735,17 +1959,25 @@ public class EchoServer {
                 info.put("type", "read");
                 info.put("buffer", buffer);
                 clientChannel.read(buffer, info, this);
+                // NIO 中 读取时 SocketChannel#read(rBuffer) > 0 确保通道数据都读取到缓冲区 AIO里是否也需要？？？
+                // 还有通道里数据字节要是大于缓冲区大小呢？？？
             }
         }
 
+        /**
+         * 异步回调失败回调
+         * @param exc
+         * @param attachment
+         */
         @Override
         public void failed(Throwable exc, Object attachment) {
-            // 处理一些错误的情况
+            // 处理异步调用失败异常
         }
     }
 
     public static void main(String[] args) {
         EchoServer server = new EchoServer();
+        // 服务端启动
         server.start();
     }
 
@@ -1755,6 +1987,8 @@ public class EchoServer {
 ### 8.4 客户端实现-EchoClient
 
 ```java
+package tk.deriwotua.socket.aio.echo;
+
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.InputStreamReader;
@@ -1764,7 +1998,8 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.Future;
 
 /**
- * 客户端使用 Future 的方式来实现异步-aio
+ * 客户端使用 Future 的方式来实现AIO
+ *  与服务端使用CompletionHandler#callback()回调方式实现AIO做对比
  */
 public class EchoClient {
 
@@ -1772,6 +2007,9 @@ public class EchoClient {
 
     final int DEFAULT_PORT = 8888;
 
+    /**
+     * 客户端异步通道
+     */
     AsynchronousSocketChannel clientChannel;
 
     /**
@@ -1792,15 +2030,22 @@ public class EchoClient {
 
     public void start() {
         try {
-            // 创建客户端channel
+            // 创建客户端异步通道
             clientChannel = AsynchronousSocketChannel.open();
+            /**
+             * 之后通过异步客户端通道向服务端发起连接请求
+             * 直接返回 Future 未来时间完成任务抽象结果对象
+             */
             Future<Void> future = clientChannel.connect(new InetSocketAddress(LOCALHOST, DEFAULT_PORT));
-            // 阻塞式调用get方法，等待连接成功
+            // 阻塞式调用get方法，等待直到连接成功
             future.get();
-            // 等待用户的输入
+            // Future#get()执行成功返回后建立连接继续执行
+
+            // 不停等待用户的输入
             BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
             while (true) {
-                String input = consoleReader.readLine(); // 阻塞式调用
+                // 阻塞式调用
+                String input = consoleReader.readLine();
                 byte[] inputBytes = input.getBytes();
                 // 构建ByteBuffer
                 ByteBuffer buffer = ByteBuffer.wrap(inputBytes);
@@ -1809,13 +2054,16 @@ public class EchoClient {
                 // 阻塞等待客户端往服务器发送数据完成
                 writeResult.get();
 
-                buffer.flip(); // 变换为读模式
+                // 数据发送完毕后 缓冲区变换为读模式
+                buffer.flip();
                 Future<Integer> readResult = clientChannel.read(buffer);
                 // 阻塞获取服务器返回的数据
                 readResult.get();
 
+                // 通道数据读取完毕后
                 String echo = new String(buffer.array());
                 System.out.println(echo);
+                // 重置缓冲区指针
                 buffer.clear();
             }
         } catch (Exception e) {
@@ -1831,16 +2079,36 @@ public class EchoClient {
     }
 
 }
+
 ```
 
 ### 8.5 执行服务端和客户端
+
+
+
+```text
+######## 启动服务端 ########
+启动服务器，监听端口：8888
+
+######## Client1 ########
+hi
+hi
+
+######## Client2 ########
+how are you
+how are you
+```
+
+
+
+
 
 ## 9.实战：基于AIO改造多人聊天室
 
 ### 9.1 AIO 模型
 
 再梳理一下AIO变成模型运行的机制
-- 服务端创建`AsyncServerSocketChannel`即异步的服务器通道，同时把通道绑定到服务器端监听的端口
+- 服务端创建`AsyncServerSocketChannel`即异步的服务端通道，同时把通道绑定到服务器端监听的端口
   - 其实`AsyncServerSocketChannel`是属于某个`AsyncChannelGroup` 通道组的，这个通道组指的是一组可以被多个异步通道所共享的资源群组，里边最主要的是线程池，之所以需要 `AsyncChannelGroup` 来保存 `AsyncServerSocketChannel` 是因为在IO编程模型里，系统操作系统已经做了很多的事情，使用起来方便高效。当操作系统准备好数据后，会以异步的方式来通知或者通过设定的 handler 做异步操作。操作系统怎样来进行dispatch各种handler需要做的工作？在实际的实现当中，操作系统需要使用各种各样的性的资源，比如如果给定一个线程池，那么操作系统就可以重复利用线程池里边这些可供使用的线程来dispatch一些handler执行处理业务逻辑。这个就是创建AsyncServerSocketChannel的时指定AsynchronousChannelGroup的原因所在。
 
   ![AsynchronousChannelGroup](assets/AsynchronousChannelGroup.png)
