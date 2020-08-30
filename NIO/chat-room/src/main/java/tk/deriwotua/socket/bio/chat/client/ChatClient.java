@@ -7,8 +7,6 @@ import java.net.Socket;
  * 基于BIO模型实现的多人聊天室设计-客户端
  * <p>
  * 先完成主线程：将消息发送给服务器，接收服务器返回的消息
- *
- * @author caojx created on 2020/6/13 6:57 下午
  */
 public class ChatClient {
 

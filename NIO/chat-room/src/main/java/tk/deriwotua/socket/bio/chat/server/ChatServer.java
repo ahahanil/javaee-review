@@ -13,8 +13,6 @@ import java.util.Map;
  * 收到客户端消息后转发给在线的所有的客户端
  * 需要保存所有的在线客户端列表
  * 当用户输入 quit 的时候，这个客户就不想留在服务器端，就需要将它从在线用户列表中移除
- *
- * @author caojx created on 2020/6/13 6:33 下午
  */
 public class ChatServer {
 

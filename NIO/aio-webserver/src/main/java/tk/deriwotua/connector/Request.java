@@ -9,15 +9,15 @@ import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Map;
 
-/*
-
-GET /index.html HTTP/1.1
-        Host: localhost:8888
-        Connection: keep-alive
-        Cache-Control: max-age=0
-        Upgrade-Insecure-Requests: 1
-        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36
-*/
+/**
+ * HTTP协议格式
+ *      GET /index.html HTTP/1.1
+ *      Host: localhost:8888
+ *      Connection: keep-alive
+ *      Cache-Control: max-age=0
+ *      Upgrade-Insecure-Requests: 1
+ *      User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36
+ */
 public class Request implements ServletRequest {
 
     private static final int BUFFER_SIZE = 1024;
@@ -40,6 +40,9 @@ public class Request implements ServletRequest {
         return uri;
     }
 
+    /**
+     * 解析HTTP协议
+     */
     public void parse() {
         int length = 0;
         byte[] buffer = new byte[BUFFER_SIZE];
@@ -62,10 +65,10 @@ public class Request implements ServletRequest {
     /**
      * 解析请求中的请求url
      * <p>
-     * 假设请求是有空格分割的内容，我们要获取的就是第一个空格与第二个空格之间的内容
+     * 假设请求是有空格分割的内容，要获取的就是第一个空格与第二个空格之间的内容
      *
      * 假设请求的格式如下：
-     * GET /index.html HTTP/1.1
+     *         GET /index.html HTTP/1.1
      *         Host: localhost:8888
      *         Connection: keep-alive
      *         Cache-Control: max-age=0

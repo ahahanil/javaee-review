@@ -10,8 +10,6 @@ import java.util.Set;
 
 /**
  * 使用nio编程模型实现多人聊天室-服务端
- *
- * @author caojx created on 2020/6/23 6:50 下午
  */
 public class ChatServer {
 
@@ -81,7 +79,8 @@ public class ChatServer {
             // 进入监听模式
             while (true) {
                 // select()函数是阻塞式的
-                selector.select();
+                int selected = selector.select();
+                System.out.println(selected);
                 // 获取监听事件，每一个被触发的事件与他相关的信息都包装在SelectionKey对象中
                 Set<SelectionKey> selectionKeys = selector.selectedKeys();
                 for (SelectionKey selectionKey : selectionKeys) {
@@ -128,7 +127,12 @@ public class ChatServer {
             if (fwMsg.isEmpty()) {
                 // 客户端异常，不再监听该客户端可能发送过来的消息
                 selectionKey.cancel();
-                // 事件发生了变化，更新selector监听的事件
+                /**
+                 * 由于 cancel 掉了 selectionKey 上事件监听
+                 * 但是 服务端通道如果是阻塞的话 ServerSocketChannel#select() 这里还在继续阻塞监听
+                 * 所以 需要通知 ServerSocketChannel#select() 返回不再死等
+                 * wakeup() 干的就是这事
+                 */
                 selector.wakeup();
             } else {
                 // 消息转发给其他在线的客户端
@@ -152,7 +156,7 @@ public class ChatServer {
      */
     private void forwardMessage(SocketChannel client, String fwMsg) throws IOException {
         // selector.keys() 会返回所有已经注册在selector上的SelectionKey的集合，
-        // 我们可以认为注册在selector上的SelectionKey即是当前在线的客户端
+        // 可以认为注册在selector上的SelectionKey即是当前在线的客户端
         for (SelectionKey key : selector.keys()) {
 
             // 跳过服务器端的通道 ServerSocketChannel
@@ -160,11 +164,12 @@ public class ChatServer {
             if (connectedClient instanceof ServerSocketChannel) {
                 continue;
             }
-            // 检测channel没有被关闭，且通道不是自己本身
+            // 检测channel没有被关闭或事件监听没有被取消或Selector没有被关闭，且通道不是自己本身
             if (key.isValid() && !client.equals(connectedClient)) {
                 wBeBuffer.clear();
                 wBeBuffer.put(charset.encode(fwMsg));
                 wBeBuffer.flip();
+                // 直到缓冲区数据都被写入通道
                 while (wBeBuffer.hasRemaining()) {
                     ((SocketChannel) connectedClient).write(wBeBuffer);
                 }
@@ -184,6 +189,7 @@ public class ChatServer {
     private String receive(SocketChannel client) throws IOException {
         // 清理残留的内容
         rBuffer.clear();
+        // 一次性读取完
         while (client.read(rBuffer) > 0) ;
         // 写模式切换回读模式
         rBuffer.flip();

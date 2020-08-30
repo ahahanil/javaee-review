@@ -1,4 +1,4 @@
-package tk.deriwotua.connector;
+package tk.deriwotua.connector.enums;
 
 public enum HttpStatus {
 

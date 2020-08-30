@@ -13,7 +13,6 @@ import java.net.Socket;
  * 前面的ChatServer 代码中添加readToQuit的方法代码
  * 最后需要注意线程安全问题，需要注意一下
  *
- * @author caojx created on 2020/6/13 6:50 下午
  */
 public class ChatHandler implements Runnable {
 

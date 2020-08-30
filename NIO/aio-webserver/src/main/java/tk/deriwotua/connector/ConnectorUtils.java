@@ -1,7 +1,12 @@
 package tk.deriwotua.connector;
 
+import tk.deriwotua.connector.enums.HttpStatus;
+
 import java.io.File;
 
+/**
+ * 连接工具类
+ */
 public class ConnectorUtils {
 
     public static final String WEB_ROOT = System.getProperty("user.dir") + File.separator + "webroot";

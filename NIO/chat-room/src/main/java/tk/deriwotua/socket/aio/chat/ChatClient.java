@@ -19,7 +19,7 @@ public class ChatClient {
     private static final int BUFFER = 1024;
 
     /**
-     * 异步通道
+     * 客户端异步通道
      */
     private AsynchronousSocketChannel clientChannel;
 
@@ -28,36 +28,41 @@ public class ChatClient {
      */
     private Charset charset = Charset.forName("UTF-8");
 
-
     private void start() {
-
         try {
             // 创建异步通道channel，并发起连接请求
             clientChannel = AsynchronousSocketChannel.open();
+            /**
+             * 之后通过异步客户端通道向服务端异步发起连接请求
+             * 直接返回 Future 未来时间完成任务抽象结果对象
+             */
             Future<Void> future = clientChannel.connect(new InetSocketAddress(LOCALHOST, DEFAULT_PORT));
-
             // 阻塞式调用，等待客户端连接成功
             future.get();
+            // Future#get()执行成功返回后建立了连接继续执行
             System.out.println("已连接到服务器");
 
-            // 处理用户输入事件
+            // 子线程处理用户输入事件
             new Thread(new UserInputHandler(this)).start();
 
-            // 主线程中循环中读取服务器转发过来的其他客户端消息
+            // 主线程不停读取服务器转发过来的其他客户端消息
             ByteBuffer buffer = ByteBuffer.allocate(BUFFER);
             while (true) {
                 Future<Integer> readResult = clientChannel.read(buffer);
                 // 阻塞式读取数据
                 int result = readResult.get();
+
                 if (result <= 0) {
-                    // 发生异常，没有读取到数据
+                    // 读取数据大小非负值除非客户端异步通道异常
+                    // 关闭异常通道
                     close(clientChannel);
                     System.out.println("与服务器连接异常");
                     System.exit(1);
                 } else {
-                    // 正常打印消息
+                    // buffer 从写置为读模式
                     buffer.flip();
                     String message = String.valueOf(charset.decode(buffer));
+                    // 读取后重置缓冲区指针
                     buffer.clear();
                     System.out.println(message);
                 }
@@ -81,6 +86,7 @@ public class ChatClient {
         }
         ByteBuffer byteBuffer = charset.encode(message);
         Future<Integer> writeResult = clientChannel.write(byteBuffer);
+        // 阻塞等待客户端往服务器发送数据完成
         writeResult.get();
     }
 

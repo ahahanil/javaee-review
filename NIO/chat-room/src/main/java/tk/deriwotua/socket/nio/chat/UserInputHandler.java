@@ -6,8 +6,6 @@ import java.io.InputStreamReader;
 
 /**
  * 使用nio编程模型实现多人聊天室-处理用户输入信息
- *
- * @author caojx created on 2020/6/26 6:55 下午
  */
 public class UserInputHandler implements Runnable {
 

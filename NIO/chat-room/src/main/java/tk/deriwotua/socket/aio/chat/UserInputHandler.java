@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 /**
- * 客户端发送消息
+ * 用户录入
  */
 public class UserInputHandler implements Runnable {
 

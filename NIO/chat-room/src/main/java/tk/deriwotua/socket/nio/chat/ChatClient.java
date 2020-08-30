@@ -13,8 +13,6 @@ import java.util.Set;
 
 /**
  * 使用nio编程模型实现多人聊天室-客户端
- *
- * @author caojx created on 2020/6/26 6:50 下午
  */
 public class ChatClient {
 
@@ -92,9 +90,13 @@ public class ChatClient {
         if (selectionKey.isConnectable()) {
             // 获取selectionKey上对应的客户端通道
             SocketChannel client = (SocketChannel) selectionKey.channel();
-            // 请求是否已经链接
+            /**
+             * 当服务端 ServerSocketChannel#accept() 后只是完成通道初始化还没有完全的完成建立连接的过程
+             * 其实是处于 connectionPending() 状态
+             * 请求是否已经链接
+             */
             if (client.isConnectionPending()) {
-                // 正式建立链接
+                // 连接建立已就绪仅需finishConnect完成建立正式建立链接
                 client.finishConnect();
 
                 // 处理用户的输入信息

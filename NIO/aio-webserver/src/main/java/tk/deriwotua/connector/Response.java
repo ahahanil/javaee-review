@@ -1,14 +1,16 @@
 package tk.deriwotua.connector;
 
+import tk.deriwotua.connector.enums.HttpStatus;
+
 import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletResponse;
 import java.io.*;
 import java.util.Locale;
 
-/*
-响应的抽象
-
-HTTP/1.1 200 OK
+/**
+ * 响应的抽象
+ *  格式
+ *      HTTP/1.1 200 OK
  */
 public class Response implements ServletResponse {
 

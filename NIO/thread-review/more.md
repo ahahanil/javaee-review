@@ -2105,7 +2105,7 @@ how are you
 
 ## 9.实战：基于AIO改造多人聊天室
 
-### 9.1 AIO 模型
+### 9.1 AIO 模型梳理
 
 再梳理一下AIO模型运行机制
 - 服务端创建`AsyncServerSocketChannel`即异步的服务端通道，同时把通道绑定到服务器端监听的端口
@@ -2145,6 +2145,19 @@ how are you
 ### 9.2 AIO ChatServer 服务器的创建
 
 ```java
+package tk.deriwotua.socket.aio.chat;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.*;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * 使用AIO编程模型实现多人聊天室-服务端
  */
@@ -2156,12 +2169,13 @@ public class ChatServer {
     private static final int BUFFER = 1024;
 
     /**
-     * 使用自定义的异步共享通道组
+     * 使用自定义的资源共享异步通道组
+     *  然后把 服务端异步通道加入组里
      */
     private AsynchronousChannelGroup asynchronousChannelGroup;
 
     /**
-     * 服务器端通道
+     * 服务端通道
      */
     private AsynchronousServerSocketChannel serverSocketChannel;
 
@@ -2185,23 +2199,25 @@ public class ChatServer {
 
     public void start() {
         try {
-            // 自定义AsynchronousChannelGroup
+            // 创建线程池设置线程池大小
             ExecutorService executorService = Executors.newFixedThreadPool(10);
-            // 将线程池加入到异步通道中
+            /**
+             * 创建自定义 AsynchronousChannelGroup 并将线程池加入到资源共享异步通道组中
+             */
             asynchronousChannelGroup = AsynchronousChannelGroup.withThreadPool(executorService);
 
-            // 打开通道,使用自定义的asynchronousChannelGroup
+            // 打开服务端异步通道,并加入自定义 asynchronousChannelGroup 资源共享异步通道组中
             serverSocketChannel = AsynchronousServerSocketChannel.open(asynchronousChannelGroup);
 
-            // 通道绑定本地主机和端口
+            // 服务端异步通道绑定本地主机和端口
             serverSocketChannel.bind(new InetSocketAddress(LOCALHOST, DEFAULT_PORT));
             System.out.println("启动服务器,监听端口" + DEFAULT_PORT);
 
             // while循环，持续监听客户端的连接请求
             while (true) {
-                // 一直调用accept函数,接收要与服务端建立连接的用户
+                // 一直调用accept函数,接收要与服务端建立连接的客户端 指定CompletionHandler来处理accept的结果
                 serverSocketChannel.accept(null, new AcceptHandler());
-                // 阻塞式调用,防止占用系统资源
+                // 阻塞式调用,避免while循环过于频繁占用系统资源
                 System.in.read();
             }
         } catch (Exception e) {
@@ -2212,18 +2228,36 @@ public class ChatServer {
     }
 
     /**
-     * 创建AcceptHandler，用来处理accept函数的异步调用的返回结果，即接收客户端的连接请求后，进行回调
+     * AsynchronousServerSocketChannel#accept() 服务端异步接受客户端建立连接后
+     * 通过CompletionHandler#callback()回调方式处理后续对结果操作
+     *      CompletionHandler<V,A>
+     *          泛型V 对应事件返回值类型 这里accept()后建立的AsynchronousSocketChannel客户端异步通道
+     *          泛型A 回调方法传参 可回调方法里需要用到的任意类型
+     * <p>
+     * 由AsynchronousChannelGroup中的线程回调
      */
     private class AcceptHandler implements CompletionHandler<AsynchronousSocketChannel, Object> {
 
+        /**
+         * 异步调用函数成功返回时调用
+         *
+         * @param clientChannel 与服务端建立连接的异步的客户端通道(泛型指定结果类型)
+         * @param attachment 额外的信息或数据(泛型指定附件类型)
+         */
         @Override
         public void completed(AsynchronousSocketChannel clientChannel, Object attachment) {
+            /**
+             * 服务端未关闭是持续监听客户端来连接的请求
+             *  当连接触发后回调函数里重置服务端异步通道事件
+             *  和之前Zookeeper里Watcher监视器注册只单次有效类似需要再次注册
+             */
             if (serverSocketChannel.isOpen()) {
                 // 继续等待监听新的客户端的连接请求
                 serverSocketChannel.accept(null, this);
             }
 
             // 处理当前已连接的客户端的数据读写
+            // 客户端异步通道未关闭且处于可操作的状态
             if (clientChannel != null && clientChannel.isOpen()) {
                 // 为该新连接的用户创建handler,用于读写操作
                 ClientHandler clientHandler = new ClientHandler(clientChannel);
@@ -2231,24 +2265,42 @@ public class ChatServer {
                 // 数据读写需要通过buffer
                 ByteBuffer byteBuffer = ByteBuffer.allocate(BUFFER);
 
-                // 将新用户添加到在线列表
+                // 将客户端添加到在线列表
                 addClient(clientHandler);
 
-                // 第一个buffer：表示从clientChannel中读取的信息写入到buffer缓冲区中
-                // 第二个buffer：handler回调函数被调用时,buffer会被当做一个attachment参数传入到该回调函数中
-                // buffer、attachment、使用ClientHandler来处理read函数的异步调用的返回结果
+                /**
+                 * 读取客户端异步通道发送的消息到byteBuffer中，并交给ClientHandler处理
+                 *  读取数据写入 byteBuffer 缓冲区
+                 *  把当前事件和读取到的数据缓冲区作为 byteBuffer 附件参数传递到读完通道数据回调方法里
+                 *  handler 回调处理read函数的异步调用返回结果
+                 */
                 clientChannel.read(byteBuffer, byteBuffer, clientHandler);
             }
         }
 
+        /**
+         * 异步调用失败时触发
+         * @param exc
+         * @param attachment
+         */
         @Override
         public void failed(Throwable exc, Object attachment) {
+            // 处理异步调用失败异常
             System.out.println("连接失败" + exc);
         }
     }
 
     /**
-     * 创建客户端的ClientHandler，用来处理read函数的异步调用的返回结果
+     * 处理客户端通道读写事件ClientHandler
+     * AsynchronousServerSocketChannel#accept() 服务端异步接受客户端建立连接后获取到AsynchronousSocketChannel客户端异步通道
+     * 而后 AsynchronousSocketChannel#read() 异步读取数据完毕后
+     *      亦或 AsynchronousSocketChannel#write() 异步写取数据完毕后
+     * 通过CompletionHandler#callback()回调方式处理后续对结果操作
+     *      CompletionHandler<V,A>
+     *          泛型V 对应事件返回值类型 这里read()/write()缓冲区数据字节大小
+     *          泛型A 回调方法传参 可回调方法里需要用到的任意类型
+     * <p>
+     * 由AsynchronousChannelGroup中的线程回调
      */
     private class ClientHandler implements CompletionHandler<Integer, Object> {
 
@@ -2264,32 +2316,44 @@ public class ChatServer {
         /**
          * 成功的异步回调
          *
-         * @param result     表示我们从read中读取了多少数据
+         *
+         * @param result     表示从read中读取了多少数据
          * @param attachment
          */
         @Override
         public void completed(Integer result, Object attachment) {
             ByteBuffer byteBuffer = (ByteBuffer) attachment;
+            /**
+             * 由于读写都是绑定的ClientHandler所以这里就需要区分读写
+             *  从客户端异步通道里读取到的数据会通过 attachment 传递到这里
+             *  而将这个数据转发给其他客户端异步通道(写操作)后触发这些这里回调其实所有步骤就已经完成了
+             *      不需要再回调里对这个写操作做额外处理所以可以通过给写操作绑定 ClientHandler 不指定附件方式区分
+             *      即 写操作时这里的 attachment 为 null
+             */
             if (byteBuffer != null) {
                 if (result <= 0) {
-                    // result<=0，非正整数，可以理解为客户端异常
-                    // 将客户移除出在线列表
+                    // 读取数据大小非负值除非客户端异步通道异常
+                    // 在线列表移除异常客户端
                     removeClient(this);
                 } else {
-                    // 将 buffer 从写变为读模式
+                    // 客户端异步通道里存在有效数据
+                    // 首先将 buffer 从写变为读模式
                     byteBuffer.flip();
 
                     // 打印消息
                     String fwdMsg = receive(byteBuffer);
                     System.out.println(getClientName(clientChannel) + ":" + fwdMsg);
 
-                    // 转发消息给当前的其他在线用户
-                    fwdwordMessage(clientChannel, fwdMsg);
+                    // 转发消息给当前的其他在线客户端
+                    forwardMessage(clientChannel, fwdMsg);
 
-                    // 重置buffer
+                    // 重置buffer指针
                     byteBuffer.clear();
 
-                    // 如果客户端发送的是quit退出消息，则把客户移除监听的客户列表
+                    /**
+                     * 如果客户端发送的是quit退出消息，则把客户移除监听的客户列表
+                     * 否则持续从客户端异步读取数据
+                     */
                     if (readyToQuit(fwdMsg)) {
                         // 将客户从在线客户列表中去除
                         removeClient(this);
@@ -2301,8 +2365,14 @@ public class ChatServer {
             }
         }
 
+        /**
+         * 异步调用失败时触发
+         * @param exc
+         * @param attachment
+         */
         @Override
         public void failed(Throwable exc, Object attachment) {
+            // 处理异步调用失败异常
             System.out.println("读写失败:" + exc);
         }
     }
@@ -2340,19 +2410,26 @@ public class ChatServer {
     }
 
     /**
-     * 服务器端转发该客户发送的消息到其他客户控制室上(转发信息)
+     * 服务端转发该客户端发送的消息到其他客户端异步通道上
      *
      * @param clientChannel
      * @param fwdMsg
      */
-    private synchronized void fwdwordMessage(AsynchronousSocketChannel clientChannel, String fwdMsg) {
+    private synchronized void forwardMessage(AsynchronousSocketChannel clientChannel, String fwdMsg) {
         for (ClientHandler handler : connectedClients) {
-            // 该信息不用再转发到发送信息的那个人那
+            // 该信息不用再转发到发送信息的那个客户端那
             if (!handler.clientChannel.equals(clientChannel)) {
                 try {
                     // 将要转发的信息写入到缓冲区中
                     ByteBuffer buffer = charset.encode(getClientName(handler.clientChannel) + ":" + fwdMsg);
-                    // 将相应的信息写入到用户通道中,用户再通过获取通道中的信息读取到对应转发的内容
+                    /**
+                     * 将相应的信息写入到客户端异步通道中,然后客户端再通过客户端异步通道读取转发的内容
+                     *  消息转发后触发 ClientHandler 回调方法回调方法里不需要再额外处理什么即空实现即可
+                     *  但是由于 读写都公用 ClientHandler#completed()
+                     *      而读操作会传递缓冲区附件
+                     *      写操作这里总结空实现即可
+                     *  所以ClientHandler#completed()可以通过 附件这个参数是否为 null 区分读写操作
+                     */
                     handler.clientChannel.write(buffer, null, handler);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -2415,6 +2492,16 @@ public class ChatServer {
 ### 9.3 AIO ChatClient客户端实现
 
 ```java
+package tk.deriwotua.socket.aio.chat;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.charset.Charset;
+import java.util.concurrent.Future;
+
 /**
  * 使用AIO编程模型实现多人聊天室-客户端
  */
@@ -2426,7 +2513,7 @@ public class ChatClient {
     private static final int BUFFER = 1024;
 
     /**
-     * 异步通道
+     * 客户端异步通道
      */
     private AsynchronousSocketChannel clientChannel;
 
@@ -2435,36 +2522,41 @@ public class ChatClient {
      */
     private Charset charset = Charset.forName("UTF-8");
 
-
     private void start() {
-
         try {
             // 创建异步通道channel，并发起连接请求
             clientChannel = AsynchronousSocketChannel.open();
+            /**
+             * 之后通过异步客户端通道向服务端异步发起连接请求
+             * 直接返回 Future 未来时间完成任务抽象结果对象
+             */
             Future<Void> future = clientChannel.connect(new InetSocketAddress(LOCALHOST, DEFAULT_PORT));
-
             // 阻塞式调用，等待客户端连接成功
             future.get();
+            // Future#get()执行成功返回后建立了连接继续执行
             System.out.println("已连接到服务器");
 
-            // 处理用户输入事件
+            // 子线程处理用户输入事件
             new Thread(new UserInputHandler(this)).start();
 
-            // 主线程中循环中读取服务器转发过来的其他客户端消息
+            // 主线程不停读取服务器转发过来的其他客户端消息
             ByteBuffer buffer = ByteBuffer.allocate(BUFFER);
             while (true) {
                 Future<Integer> readResult = clientChannel.read(buffer);
                 // 阻塞式读取数据
                 int result = readResult.get();
+
                 if (result <= 0) {
-                    // 发生异常，没有读取到数据
+                    // 读取数据大小非负值除非客户端异步通道异常
+                    // 关闭异常通道
                     close(clientChannel);
                     System.out.println("与服务器连接异常");
                     System.exit(1);
                 } else {
-                    // 正常打印消息
+                    // buffer 从写置为读模式
                     buffer.flip();
                     String message = String.valueOf(charset.decode(buffer));
+                    // 读取后重置缓冲区指针
                     buffer.clear();
                     System.out.println(message);
                 }
@@ -2488,6 +2580,7 @@ public class ChatClient {
         }
         ByteBuffer byteBuffer = charset.encode(message);
         Future<Integer> writeResult = clientChannel.write(byteBuffer);
+        // 阻塞等待客户端往服务器发送数据完成
         writeResult.get();
     }
 
@@ -2519,11 +2612,16 @@ public class ChatClient {
 ```
 
 
-### 9.4 AIO UserInputHandler客户端实现消息发送
+### 9.4 AIO 客户端录入数据发送
 
 ```java
+package tk.deriwotua.socket.aio.chat;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
 /**
- * 客户端发送消息
+ * 用户录入
  */
 public class UserInputHandler implements Runnable {
 
@@ -2559,6 +2657,18 @@ public class UserInputHandler implements Runnable {
 
 ![AIO版多人聊天室](assets/AIO版多人聊天室.png)
 
+
+
+
+
+上面 AIO 例子都是最基本应用其实存在一个数据是否完整的问题，无论是客户端从服务端读取数据还是服务端读写客户端发送数据期间由某个指定大小的缓冲区经手，都没有校验数据完整性，即可能数据未完整写入到缓冲区就发送出去了又可能数据大于缓冲区最大值！通常做法就是自定义一个应用层的协议协议头中包含数据的大小等用于校验信息保证信息安全完整性。
+
+
+
+
+
+---
+
 ## 10.综合实战：简易版Web服务器
 
 分析web服务器的原理及使用实现一个乞丐版web服务器。
@@ -2568,12 +2678,12 @@ public class UserInputHandler implements Runnable {
 
 资源分为静态资源和动态资源
 
-静态资源
+请求静态资源时只需要从路径映射位置取出资源响应客户端
 ![静态资源](assets/静态资源.png)
 
 动态资源
 - 随着请求发起方、发起事件、请求内容等因素而变化
-- 服务器通过一个容器来获取动态资源
+- 服务端通过一个容器来获取动态资源
 
 ![请求动态资源](assets/请求动态资源.png)
 
@@ -2589,35 +2699,49 @@ Server 组件
 - 负责运行Tomcat服务器
 - 负责加载服务器资源和环境变量
 
-Service 组件
+
+
+Service 抽象组件
 - 集合Connector和Engine的抽象组件
 - 一个Server可以包含多个Service
-- 一个Service可以包含多个Connector和Engine
+- 一个Service可以包含多个Connector和一个Engine
 
-Connector、Processor
+
+
+Connector服务端可以与客户端创建连接的端点，然后接收客户端对资源的请求最终返回也是经由Connector响应客户端。Connector并不处理请求而是传递给Processor再传递给相应组件处理。
 - Connector提供基于不同特定协议的实现
 - Connector接受解析请求，返回响应
 - 经Processor派遣请求至Engine进行处理
 
-Engine
+
+
+Engine 组件
 - 容器是Tomcat用来处理请求的组件
 - 容器内部的组件按照层级排列
 - Engine是容器的顶层组件
 
-Host
+
+
+Host 组件
 - Host代表一个虚拟主机
 - 一个Engine可以支持多个虚拟主机的请求
 - Engine通过解析请求来决定将请求发送给哪一个Host
 
-Context
+
+
+Context 组件
 - Context代表一个Web Application
 - Tomcat最复杂的组件之一
 - 应用资源管理、应用类加载、Servlet管理、安全管理等
 
-Wrapper
+
+
+Wrapper 组件
 - Wrapper是容器的最底层组件
 - 包裹住Servlet实例
 - 负责管理Servlet实例的生命周期
+
+
 
 ### 10.3 实现 Request
 
@@ -2640,45 +2764,90 @@ User-Agent: Mozilla/5.0 (Windows NT 10.0; …) Gecko/20100101 Firefox/68.0
 
 具体代码
 ```java
-public class Request {
+/**
+ * HTTP协议格式
+ *      GET /index.html HTTP/1.1
+ *      Host: localhost:8888
+ *      Connection: keep-alive
+ *      Cache-Control: max-age=0
+ *      Upgrade-Insecure-Requests: 1
+ *      User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36
+ */
+public class Request implements ServletRequest {
+
     private static final int BUFFER_SIZE = 1024;
 
-    private InputStream input;  // 与对应的请求的 socket 对应的输入流
-    private String uri;    // 请求资源的地址
+    /**
+     * 输入流，即和socket所对应的InputStream
+     */
+    private InputStream input;
+
+    /**
+     * 请求的uri，如 /index.html
+     */
+    private String uri;
 
     public Request(InputStream input) {
-      this.input = input;
+        this.input = input;
     }
 
     public String getRequestURI() {
         return uri;
     }
 
+    /**
+     * 解析HTTP协议
+     */
     public void parse() {
-       int length = 0;
-       byte[] buffer = new byte[BUFFER_SIZE];
-       try {
-          length = input.read(buffer);
-       } catch (Exception e) {
-          e.printStackTrace();
-       }
-       StringBuilder request = new StringBuilder();
-       for (int i = 0 ; i < length; i ++) {
-           request.append((char)buffer[i]);   // 每个字节转为字符
-       }
-       uri = parseUri(request.toString());
+        int length = 0;
+        byte[] buffer = new byte[BUFFER_SIZE];
+        try {
+            length = input.read(buffer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // 获取请求的所有信息
+        StringBuilder request = new StringBuilder();
+        for (int j = 0; j < length; j++) {
+            request.append((char) buffer[j]);
+        }
+
+        // 解析uri
+        uri = parseUri(request.toString());
     }
-    
+
+    /**
+     * 解析请求中的请求url
+     * <p>
+     * 假设请求是有空格分割的内容，要获取的就是第一个空格与第二个空格之间的内容
+     *
+     * 假设请求的格式如下：
+     *         GET /index.html HTTP/1.1
+     *         Host: localhost:8888
+     *         Connection: keep-alive
+     *         Cache-Control: max-age=0
+     *         Upgrade-Insecure-Requests: 1
+     *         User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36
+     *
+     * @param s
+     * @return
+     */
     private String parseUri(String s) {
-       int index1, index2;
-       index1 = s.indexOf(' ');  // 寻找第一个空格
-       if(index1 != -1) { // 如果能找到第一个空格的位置
-           index2 = s.indexOf('  ', index2); // 寻找第二个空格
-           if(index2 > index1) {
-              return s.subString(index1 + 1, index2); // 截取出来
-           }
-       }
-       return "";
+        int index1, index2;
+
+        // 获取第一个空格的位置
+        index1 = s.indexOf(' ');
+        if (index1 != -1) {
+            // 从第一个空格后边的位置开始寻找第二个空格
+            index2 = s.indexOf(' ', index1 + 1);
+
+            // 获取url
+            if (index2 > index1) {
+                return s.substring(index1 + 1, index2);
+            }
+        }
+        return "";
     }
 }
 ```
@@ -4060,17 +4229,16 @@ public class Connector implements Runnable {
 
 ### 11.1 BIO 聊天室运行状态
 
-使用visual VM，jdk8以及之前的版本自带了，往后的版本需要自己下载
+使用Visual VM，jdk8以及之前的版本自带了，往后的版本需要自己下载
 
 使用BIO模型，开启50个客户端，每来一个请求，服务端就需要创建一个线程，随着客户端的增加，线程需要的资源也指数式增长
 
 
 ### 11.2 使用线程池的 BIO 聊天室运行状态
 
-1.开启50个客户端
+1. 开启50个客户端
 
-
-2.服务端有线程池限制，线程池大小为10，所以暂时只接受10个客户端的连接请求，只有当有客户端退出之后，才会接受新的连接请求
+2. 服务端有线程池限制，线程池大小为10，所以暂时只接受10个客户端的连接请求，只有当有客户端退出之后，才会接受新的连接请求
 
 
 线程的使用比没有线程池的时候少了很多
@@ -4090,14 +4258,14 @@ NIO模型，使用单一的线程就可以处理所有的连接
 ### 11.4 AIO 聊天是运行状态
 1. 开启50个客户端
 2. 服务端接受50个连接请求
-3. AIO模型比NIO模型需要的系统资源稍微多一些，因为AIO各个类的内部都是需要用到一些线程池来让我们的进程来分享系统资源的，即内部会使用稍微多一点的线程
+3. AIO模型比NIO模型需要的系统资源稍微多一些，因为AIO各个类的内部都是需要用到一些线程池来让进程来分享系统资源的，即内部会使用稍微多一点的线程
 
 
 ### 11.5 三种 IO 模型的适用的场景
 
 BIO：连接数目少，服务器资源多，开发难度低
 
-NIO：连接数目多，任务时间应该尽量短，开发难度较高，由于是使用单一线程，需要尽可能避免某几个任务花费时间过多，导致其他任务没有被及时处理
+NIO：连接数目多，任务时间应该尽量短，开发难度较高，由于是使用单一线程，需要尽可能避免某几个任务花费时间过多，导致其他任务无法被及时处理
 
 AIO：连接数目多，可以处理时间长任务，异步调用，即使有某几个任务花费较多的时间，也不会影响其他任务的处理，开发难度较高
 

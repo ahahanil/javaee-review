@@ -5,8 +5,6 @@ import java.io.InputStreamReader;
 
 /**
  * 实现用户输入监听器
- *
- * @author caojx created on 2020/6/13 10:48 下午
  */
 public class UserInputHandler implements Runnable {
 

@@ -22,12 +22,13 @@ public class ChatServer {
     private static final int BUFFER = 1024;
 
     /**
-     * 使用自定义的异步共享通道组
+     * 使用自定义的资源共享异步通道组
+     *  然后把 服务端异步通道加入组里
      */
     private AsynchronousChannelGroup asynchronousChannelGroup;
 
     /**
-     * 服务器端通道
+     * 服务端通道
      */
     private AsynchronousServerSocketChannel serverSocketChannel;
 
@@ -51,23 +52,25 @@ public class ChatServer {
 
     public void start() {
         try {
-            // 自定义AsynchronousChannelGroup
+            // 创建线程池设置线程池大小
             ExecutorService executorService = Executors.newFixedThreadPool(10);
-            // 将线程池加入到异步通道中
+            /**
+             * 创建自定义 AsynchronousChannelGroup 并将线程池加入到资源共享异步通道组中
+             */
             asynchronousChannelGroup = AsynchronousChannelGroup.withThreadPool(executorService);
 
-            // 打开通道,使用自定义的asynchronousChannelGroup
+            // 打开服务端异步通道,并加入自定义 asynchronousChannelGroup 资源共享异步通道组中
             serverSocketChannel = AsynchronousServerSocketChannel.open(asynchronousChannelGroup);
 
-            // 通道绑定本地主机和端口
+            // 服务端异步通道绑定本地主机和端口
             serverSocketChannel.bind(new InetSocketAddress(LOCALHOST, DEFAULT_PORT));
             System.out.println("启动服务器,监听端口" + DEFAULT_PORT);
 
             // while循环，持续监听客户端的连接请求
             while (true) {
-                // 一直调用accept函数,接收要与服务端建立连接的用户
+                // 一直调用accept函数,接收要与服务端建立连接的客户端 指定CompletionHandler来处理accept的结果
                 serverSocketChannel.accept(null, new AcceptHandler());
-                // 阻塞式调用,防止占用系统资源
+                // 阻塞式调用,避免while循环过于频繁占用系统资源
                 System.in.read();
             }
         } catch (Exception e) {
@@ -78,18 +81,36 @@ public class ChatServer {
     }
 
     /**
-     * 创建AcceptHandler，用来处理accept函数的异步调用的返回结果，即接收客户端的连接请求后，进行回调
+     * AsynchronousServerSocketChannel#accept() 服务端异步接受客户端建立连接后
+     * 通过CompletionHandler#callback()回调方式处理后续对结果操作
+     *      CompletionHandler<V,A>
+     *          泛型V 对应事件返回值类型 这里accept()后建立的AsynchronousSocketChannel客户端异步通道
+     *          泛型A 回调方法传参 可回调方法里需要用到的任意类型
+     * <p>
+     * 由AsynchronousChannelGroup中的线程回调
      */
     private class AcceptHandler implements CompletionHandler<AsynchronousSocketChannel, Object> {
 
+        /**
+         * 异步调用函数成功返回时调用
+         *
+         * @param clientChannel 与服务端建立连接的异步的客户端通道(泛型指定结果类型)
+         * @param attachment 额外的信息或数据(泛型指定附件类型)
+         */
         @Override
         public void completed(AsynchronousSocketChannel clientChannel, Object attachment) {
+            /**
+             * 服务端未关闭是持续监听客户端来连接的请求
+             *  当连接触发后回调函数里重置服务端异步通道事件
+             *  和之前Zookeeper里Watcher监视器注册只单次有效类似需要再次注册
+             */
             if (serverSocketChannel.isOpen()) {
                 // 继续等待监听新的客户端的连接请求
                 serverSocketChannel.accept(null, this);
             }
 
             // 处理当前已连接的客户端的数据读写
+            // 客户端异步通道未关闭且处于可操作的状态
             if (clientChannel != null && clientChannel.isOpen()) {
                 // 为该新连接的用户创建handler,用于读写操作
                 ClientHandler clientHandler = new ClientHandler(clientChannel);
@@ -97,24 +118,42 @@ public class ChatServer {
                 // 数据读写需要通过buffer
                 ByteBuffer byteBuffer = ByteBuffer.allocate(BUFFER);
 
-                // 将新用户添加到在线列表
+                // 将客户端添加到在线列表
                 addClient(clientHandler);
 
-                // 第一个buffer：表示从clientChannel中读取的信息写入到buffer缓冲区中
-                // 第二个buffer：handler回调函数被调用时,buffer会被当做一个attachment参数传入到该回调函数中
-                // buffer、attachment、使用ClientHandler来处理read函数的异步调用的返回结果
+                /**
+                 * 读取客户端异步通道发送的消息到byteBuffer中，并交给ClientHandler处理
+                 *  读取数据写入 byteBuffer 缓冲区
+                 *  把当前事件和读取到的数据缓冲区作为 byteBuffer 附件参数传递到读完通道数据回调方法里
+                 *  handler 回调处理read函数的异步调用返回结果
+                 */
                 clientChannel.read(byteBuffer, byteBuffer, clientHandler);
             }
         }
 
+        /**
+         * 异步调用失败时触发
+         * @param exc
+         * @param attachment
+         */
         @Override
         public void failed(Throwable exc, Object attachment) {
+            // 处理异步调用失败异常
             System.out.println("连接失败" + exc);
         }
     }
 
     /**
-     * 创建客户端的ClientHandler，用来处理read函数的异步调用的返回结果
+     * 处理客户端通道读写事件ClientHandler
+     * AsynchronousServerSocketChannel#accept() 服务端异步接受客户端建立连接后获取到AsynchronousSocketChannel客户端异步通道
+     * 而后 AsynchronousSocketChannel#read() 异步读取数据完毕后
+     *      亦或 AsynchronousSocketChannel#write() 异步写取数据完毕后
+     * 通过CompletionHandler#callback()回调方式处理后续对结果操作
+     *      CompletionHandler<V,A>
+     *          泛型V 对应事件返回值类型 这里read()/write()缓冲区数据字节大小
+     *          泛型A 回调方法传参 可回调方法里需要用到的任意类型
+     * <p>
+     * 由AsynchronousChannelGroup中的线程回调
      */
     private class ClientHandler implements CompletionHandler<Integer, Object> {
 
@@ -130,32 +169,44 @@ public class ChatServer {
         /**
          * 成功的异步回调
          *
-         * @param result     表示我们从read中读取了多少数据
+         *
+         * @param result     表示从read中读取了多少数据
          * @param attachment
          */
         @Override
         public void completed(Integer result, Object attachment) {
             ByteBuffer byteBuffer = (ByteBuffer) attachment;
+            /**
+             * 由于读写都是绑定的ClientHandler所以这里就需要区分读写
+             *  从客户端异步通道里读取到的数据会通过 attachment 传递到这里
+             *  而将这个数据转发给其他客户端异步通道(写操作)后触发这些这里回调其实所有步骤就已经完成了
+             *      不需要再回调里对这个写操作做额外处理所以可以通过给写操作绑定 ClientHandler 不指定附件方式区分
+             *      即 写操作时这里的 attachment 为 null
+             */
             if (byteBuffer != null) {
                 if (result <= 0) {
-                    // result<=0，非正整数，可以理解为客户端异常
-                    // 将客户移除出在线列表
+                    // 读取数据大小非负值除非客户端异步通道异常
+                    // 在线列表移除异常客户端
                     removeClient(this);
                 } else {
-                    // 将 buffer 从写变为读模式
+                    // 客户端异步通道里存在有效数据
+                    // 首先将 buffer 从写变为读模式
                     byteBuffer.flip();
 
                     // 打印消息
                     String fwdMsg = receive(byteBuffer);
                     System.out.println(getClientName(clientChannel) + ":" + fwdMsg);
 
-                    // 转发消息给当前的其他在线用户
-                    fwdwordMessage(clientChannel, fwdMsg);
+                    // 转发消息给当前的其他在线客户端
+                    forwardMessage(clientChannel, fwdMsg);
 
-                    // 重置buffer
+                    // 重置buffer指针
                     byteBuffer.clear();
 
-                    // 如果客户端发送的是quit退出消息，则把客户移除监听的客户列表
+                    /**
+                     * 如果客户端发送的是quit退出消息，则把客户移除监听的客户列表
+                     * 否则持续从客户端异步读取数据
+                     */
                     if (readyToQuit(fwdMsg)) {
                         // 将客户从在线客户列表中去除
                         removeClient(this);
@@ -167,8 +218,14 @@ public class ChatServer {
             }
         }
 
+        /**
+         * 异步调用失败时触发
+         * @param exc
+         * @param attachment
+         */
         @Override
         public void failed(Throwable exc, Object attachment) {
+            // 处理异步调用失败异常
             System.out.println("读写失败:" + exc);
         }
     }
@@ -206,19 +263,26 @@ public class ChatServer {
     }
 
     /**
-     * 服务器端转发该客户发送的消息到其他客户控制室上(转发信息)
+     * 服务端转发该客户端发送的消息到其他客户端异步通道上
      *
      * @param clientChannel
      * @param fwdMsg
      */
-    private synchronized void fwdwordMessage(AsynchronousSocketChannel clientChannel, String fwdMsg) {
+    private synchronized void forwardMessage(AsynchronousSocketChannel clientChannel, String fwdMsg) {
         for (ClientHandler handler : connectedClients) {
-            // 该信息不用再转发到发送信息的那个人那
+            // 该信息不用再转发到发送信息的那个客户端那
             if (!handler.clientChannel.equals(clientChannel)) {
                 try {
                     // 将要转发的信息写入到缓冲区中
                     ByteBuffer buffer = charset.encode(getClientName(handler.clientChannel) + ":" + fwdMsg);
-                    // 将相应的信息写入到用户通道中,用户再通过获取通道中的信息读取到对应转发的内容
+                    /**
+                     * 将相应的信息写入到客户端异步通道中,然后客户端再通过客户端异步通道读取转发的内容
+                     *  消息转发后触发 ClientHandler 回调方法回调方法里不需要再额外处理什么即空实现即可
+                     *  但是由于 读写都公用 ClientHandler#completed()
+                     *      而读操作会传递缓冲区附件
+                     *      写操作这里总结空实现即可
+                     *  所以ClientHandler#completed()可以通过 附件这个参数是否为 null 区分读写操作
+                     */
                     handler.clientChannel.write(buffer, null, handler);
                 } catch (Exception e) {
                     e.printStackTrace();

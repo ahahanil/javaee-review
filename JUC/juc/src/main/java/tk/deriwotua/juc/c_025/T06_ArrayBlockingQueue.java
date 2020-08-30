@@ -1,0 +1,45 @@
+package tk.deriwotua.juc.c_025;
+
+import java.util.Random;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * ArrayBlockingQueue 有界阻塞队列
+ */
+public class T06_ArrayBlockingQueue {
+
+	static BlockingQueue<String> strs = new ArrayBlockingQueue<>(10);
+
+	static Random r = new Random();
+
+	public static void main(String[] args) throws InterruptedException {
+		for (int i = 0; i < 10; i++) {
+			strs.put("a" + i);
+		}
+
+		/**
+		 * 队列插入数据时
+		 * 如果队列满了就会阻塞等待
+		 */
+		//strs.put("aaa");
+		/**
+		 * 队列插入数据时
+		 * 如果队列满了就会抛异常
+		 */
+		//strs.add("aaa");
+		/**
+		 * 队列插入数据时
+		 * 如果队列满了就立即会返回false
+		 */
+		//strs.offer("aaa");
+		/**
+		 * 队列插入数据时
+		 * 如果队列满了就等1s再尝试插入还不成功会返回false
+		 */
+		strs.offer("aaa", 1, TimeUnit.SECONDS);
+		
+		System.out.println(strs);
+	}
+}
