@@ -1,6 +1,9 @@
 package tk.deriwotua.juc.c_026_00_interview.A1B2C3;
 
-
+/**
+ * wait/notify 实现两个线程交替打印
+ *  需要注意 要共用同一把锁
+ */
 public class T06_00_sync_wait_notify {
     public static void main(String[] args) {
         final Object o = new Object();
@@ -42,5 +45,6 @@ public class T06_00_sync_wait_notify {
         }, "t2").start();
     }
 }
-
-//如果我想保证t2在t1之前打印，也就是说保证首先输出的是A而不是1，这个时候该如何做？
+/**
+ * 如果想保证t2在t1之前打印，也就是说保证首先输出的是A而不是1，这个时候该如何做？
+ */

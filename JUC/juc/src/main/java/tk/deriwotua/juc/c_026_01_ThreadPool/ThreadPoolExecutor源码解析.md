@@ -3,15 +3,23 @@
 ### 1、常用变量的解释
 
 ```java
-// 1. `ctl`，可以看做一个int类型的数字，高3位表示线程池状态，低29位表示worker数量
+/**
+ * 1. `ctl`，可以看做一个int类型的数字(32位)，高3位表示线程池状态，低29位表示worker数量
+ * 两个变量合并为一个同步时可以少处理一个
+ */
 private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0));
-// 2. `COUNT_BITS`，`Integer.SIZE`为32，所以`COUNT_BITS`为29
+/**
+ * 计算线程最大数量
+ * 2. `COUNT_BITS`，`Integer.SIZE`为32，所以`COUNT_BITS`为29
+ * 3. `CAPACITY`，线程池允许的最大线程数。1左移29位，然后减1，即为 2^29 - 1
+ */
 private static final int COUNT_BITS = Integer.SIZE - 3;
-// 3. `CAPACITY`，线程池允许的最大线程数。1左移29位，然后减1，即为 2^29 - 1
 private static final int CAPACITY   = (1 << COUNT_BITS) - 1;
 
-// runState is stored in the high-order bits
-// 4. 线程池有5种状态，按大小排序如下：RUNNING < SHUTDOWN < STOP < TIDYING < TERMINATED
+/**
+ * 线程5中状态 (runState is stored in the high-order bits)
+ *      按大小排序如下：RUNNING < SHUTDOWN < STOP < TIDYING < TERMINATED
+ */
 private static final int RUNNING    = -1 << COUNT_BITS;
 private static final int SHUTDOWN   =  0 << COUNT_BITS;
 private static final int STOP       =  1 << COUNT_BITS;
@@ -72,6 +80,12 @@ public ThreadPoolExecutor(int corePoolSize,
 ### 3、提交执行task的过程
 
 ```java
+/**
+ * execute 时首先启动核心线程处理任务
+ * 当启动的核心线程达到设置值后再来的任务添加到等待队列
+ * 直到队列添加满了后再来的任务创建非核心线程处理
+ * 当非核心线程添加也失败后就拒绝任务
+ */
 public void execute(Runnable command) {
     if (command == null)
         throw new NullPointerException();
@@ -95,7 +109,7 @@ public void execute(Runnable command) {
      * thread.  If it fails, we know we are shut down or saturated
      * and so reject the task.
      */
-    int c = ctl.get();
+    int c = ctl.get();  //获取状态值
     // worker数量比核心线程数小，直接创建worker执行任务
     if (workerCountOf(c) < corePoolSize) {
         if (addWorker(command, true))
@@ -104,6 +118,7 @@ public void execute(Runnable command) {
     }
     // worker数量超过核心线程数，任务直接进入队列
     if (isRunning(c) && workQueue.offer(command)) {
+        // 再次检查状态(双重检查)
         int recheck = ctl.get();
         // 线程池状态不是RUNNING状态，说明执行过shutdown命令，需要对新加入的任务执行reject()操作。
         // 这儿为什么需要recheck，是因为任务入队列前后，线程池的状态可能会发生变化。
@@ -126,21 +141,27 @@ public void execute(Runnable command) {
 ### 4、addworker源码解析
 
 ```java
+/**
+ * 添加线程由于是并发需要同步但又要考虑效率所以不会使用synchronized
+ * 使用 Lock/CAS
+ */
 private boolean addWorker(Runnable firstTask, boolean core) {
     retry:
     // 外层自旋
     for (;;) {
         int c = ctl.get();
-        int rs = runStateOf(c);
-
-        // 这个条件写得比较难懂，我对其进行了调整，和下面的条件等价
-        // (rs > SHUTDOWN) || 
-        // (rs == SHUTDOWN && firstTask != null) || 
-        // (rs == SHUTDOWN && workQueue.isEmpty())
-        // 1. 线程池状态大于SHUTDOWN时，直接返回false
-        // 2. 线程池状态等于SHUTDOWN，且firstTask不为null，直接返回false
-        // 3. 线程池状态等于SHUTDOWN，且队列为空，直接返回false
-        // Check if queue empty only if necessary.
+        int rs = runStateOf(c); // 添加线程所以数量加一
+        /**
+         * 当添加失败了
+         *  这个条件写得比较难懂，对其进行了调整，和下面的条件等价
+         *  (rs > SHUTDOWN) || 
+         *  (rs == SHUTDOWN && firstTask != null) || 
+         *  (rs == SHUTDOWN && workQueue.isEmpty())
+         *  1. 线程池状态大于SHUTDOWN时，直接返回false
+         *  2. 线程池状态等于SHUTDOWN，且firstTask不为null，直接返回false
+         *  3. 线程池状态等于SHUTDOWN，且队列为空，直接返回false
+         *  Check if queue empty only if necessary.
+         */
         if (rs >= SHUTDOWN &&
             ! (rs == SHUTDOWN &&
                firstTask == null &&
@@ -166,6 +187,9 @@ private boolean addWorker(Runnable firstTask, boolean core) {
             // else CAS failed due to workerCount change; retry inner loop
         } 
     }
+    /**
+     * 线程数加一后开始添加线程
+     */
     boolean workerStarted = false;
     boolean workerAdded = false;
     Worker w = null;
@@ -199,7 +223,7 @@ private boolean addWorker(Runnable firstTask, boolean core) {
             } finally {
                 mainLock.unlock();
             }
-            // 启动worker线程
+            // 添加后开始启动worker线程
             if (workerAdded) {
                 t.start();
                 workerStarted = true;
@@ -218,8 +242,8 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 
 ```java
 private final class Worker
-    extends AbstractQueuedSynchronizer
-    implements Runnable
+    extends AbstractQueuedSynchronizer  // 本身就是锁可以同步
+    implements Runnable // 任务
 {
     /**
      * This class will never be serialized, but we provide a

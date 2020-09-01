@@ -7,7 +7,7 @@ package tk.deriwotua.juc.c_022_RefTypeAndThreadLocal;
 
 import java.util.concurrent.TimeUnit;
 
-public class ThreadLocal1 {
+public class _01ThreadLocal {
 	volatile static Person p = new Person();
 	
 	public static void main(String[] args) {

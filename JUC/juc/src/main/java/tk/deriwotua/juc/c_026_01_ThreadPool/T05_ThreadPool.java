@@ -7,6 +7,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Java 提供两种线程池
+ * 	ThreadPoolExecutor
+ * 		普通线程池
+ * 	ForkJoinPool
+ * 		分解汇总(任务)线程池
+ * 		用很少的线程可以执行很多的任务(子任务)
+ * 		CPU密集型
+ */
 public class T05_ThreadPool {
 	public static void main(String[] args) throws InterruptedException {
 		ExecutorService service = Executors.newFixedThreadPool(5); //execute submit

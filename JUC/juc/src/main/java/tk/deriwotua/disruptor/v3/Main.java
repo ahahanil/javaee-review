@@ -1,12 +1,10 @@
 package tk.deriwotua.disruptor.v3;
 
-import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.util.DaemonThreadFactory;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.Executors;
 
 public class Main {
     public static void main(String[] args) {

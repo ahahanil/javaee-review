@@ -1,32 +1,37 @@
 # Disruptor
 
-作者：马士兵 http://www.mashibing.com
-
-最近更新：2019年10月22日
-
 ## 介绍
 
-主页：http://lmax-exchange.github.io/disruptor/
+主页：`http://lmax-exchange.github.io/disruptor/`
 
-源码：https://github.com/LMAX-Exchange/disruptor
+源码：`https://github.com/LMAX-Exchange/disruptor`
 
-GettingStarted: https://github.com/LMAX-Exchange/disruptor/wiki/Getting-Started
+GettingStarted: `https://github.com/LMAX-Exchange/disruptor/wiki/Getting-Started`
 
-api: http://lmax-exchange.github.io/disruptor/docs/index.html
+api: `http://lmax-exchange.github.io/disruptor/docs/index.html`
 
-maven: https://mvnrepository.com/artifact/com.lmax/disruptor
+maven: `https://mvnrepository.com/artifact/com.lmax/disruptor`
 
-## Disruptor的特点
+disruptor分裂、瓦解
 
-对比ConcurrentLinkedQueue : 链表实现
+单线程每秒处理600万订单
 
-JDK中没有ConcurrentArrayQueue
+最快的MQ
 
-Disruptor是数组实现的
+性能极高，无锁CAS，单机支持高并发
+
+## Disruptor 的特点
 
 无锁，高并发，使用环形Buffer，直接覆盖（不用清除）旧的数据，降低GC频率
 
 实现了基于事件的生产者消费者模式（观察者模式）
+
+ConcurrentLinkedQueue并发链表队列基于链表实现，相比较数组链表遍历效率低而JDK中没有ConcurrentArrayQueue并发数组队列基于数组实现
+- 数组扩展不便效率低
+- 链表实现需要维护两个指针分别指向链表首尾
+
+Disruptor是数组实现的环形队列首尾相连
+- Disruptor内只维护了一个sequence序列即下一个有效元素所在的位置
 
 ## RingBuffer
 
@@ -38,7 +43,9 @@ RingBuffer的序号，指向下一个可用的元素
 
 对比ConcurrentLinkedQueue，用数组实现的速度更快
 
-> 假如长度为8，当添加到第12个元素的时候在哪个序号上呢？用12%8决定
+> 假如长度为8，当添加到第12个元素的时候在哪个序号上呢？
+>
+>   用12%8决定
 >
 > 当Buffer被填满的时候到底是覆盖还是等待，由Producer决定
 >
@@ -47,6 +54,8 @@ RingBuffer的序号，指向下一个可用的元素
 ## Disruptor开发步骤
 
 1. 定义Event - 队列中需要处理的元素
+
+环形队列里存放的元素就是一个一个的Event
 
 2. 定义Event工厂，用于填充队列
 
@@ -177,21 +186,23 @@ public class Main03
 
 ## 等待策略
 
-1，(常用）BlockingWaitStrategy：通过线程阻塞的方式，等待生产者唤醒，被唤醒后，再循环检查依赖的sequence是否已经消费。
+八种等待策略
+- `BlockingWaitStrategy`(常用）：通过线程阻塞的方式，等待生产者唤醒，被唤醒后，再循环检查依赖的sequence是否已经消费。
 
-2，BusySpinWaitStrategy：线程一直自旋等待，可能比较耗cpu
+- `BusySpinWaitStrategy`：线程一直自旋等待，可能比较耗cpu
 
-3，LiteBlockingWaitStrategy：线程阻塞等待生产者唤醒，与BlockingWaitStrategy相比，区别在signalNeeded.getAndSet,如果两个线程同时访问一个访问waitfor,一个访问signalAll时，可以减少lock加锁次数.
+- `LiteBlockingWaitStrategy`：线程阻塞等待生产者唤醒，与BlockingWaitStrategy相比，区别在signalNeeded.getAndSet,如果两个线程同时访问一个访问waitfor
+,一个访问signalAll时，可以减少lock加锁次数.
 
-4，LiteTimeoutBlockingWaitStrategy：与LiteBlockingWaitStrategy相比，设置了阻塞时间，超过时间后抛异常。
+- `LiteTimeoutBlockingWaitStrategy`：与LiteBlockingWaitStrategy相比，设置了阻塞时间，超过时间后抛异常。
 
-5，PhasedBackoffWaitStrategy：根据时间参数和传入的等待策略来决定使用哪种等待策略
+- `PhasedBackoffWaitStrategy`：根据时间参数和传入的等待策略来决定使用哪种等待策略
 
-6，TimeoutBlockingWaitStrategy：相对于BlockingWaitStrategy来说，设置了等待时间，超过后抛异常
+- `TimeoutBlockingWaitStrategy`：相对于BlockingWaitStrategy来说，设置了等待时间，超过后抛异常
 
-7，（常用）YieldingWaitStrategy：尝试100次，然后Thread.yield()让出cpu
+- `YieldingWaitStrategy`(常用）：尝试100次，然后Thread.yield()让出cpu
 
-8. （常用）SleepingWaitStrategy : sleep
+- `SleepingWaitStrategy`(常用） : sleep
 
 ## 消费者异常处理
 

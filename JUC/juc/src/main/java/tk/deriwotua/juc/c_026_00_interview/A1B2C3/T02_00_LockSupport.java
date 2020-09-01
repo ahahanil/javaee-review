@@ -6,6 +6,9 @@ import java.util.concurrent.locks.LockSupport;
 //Locksupport park 当前线程阻塞（停止）
 //unpark(Thread t)
 
+/**
+ * LockSupport 实现两个线程交替打印
+ */
 public class T02_00_LockSupport {
 
 

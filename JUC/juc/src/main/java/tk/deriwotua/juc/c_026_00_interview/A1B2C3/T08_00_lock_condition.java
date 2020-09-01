@@ -1,10 +1,12 @@
 package tk.deriwotua.juc.c_026_00_interview.A1B2C3;
 
-
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * 通过 ReentrantLock 实现交替打印
+ */
 public class T08_00_lock_condition {
 
     public static void main(String[] args) {
@@ -21,7 +23,13 @@ public class T08_00_lock_condition {
 
                 for(char c : aI) {
                     System.out.print(c);
+                    /**
+                     * 唤醒
+                     */
                     condition.signal();
+                    /**
+                     * 进入等待
+                     */
                     condition.await();
                 }
 
