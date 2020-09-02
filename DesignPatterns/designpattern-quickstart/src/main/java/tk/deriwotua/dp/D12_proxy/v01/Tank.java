@@ -3,7 +3,7 @@ package tk.deriwotua.dp.D12_proxy.v01;
 import java.util.Random;
 
 /**
- * 问题：我想记录坦克的移动时间
+ * 问题：记录坦克的移动时间
  */
 public class Tank implements Movable {
 

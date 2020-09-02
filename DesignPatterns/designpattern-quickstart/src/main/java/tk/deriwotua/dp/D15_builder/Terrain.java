@@ -1,11 +1,27 @@
 package tk.deriwotua.dp.D15_builder;
 
+/**
+ * 坦克大战地形
+ *
+ */
 public class Terrain {
+    /**
+     * 墙
+     */
     Wall w;
+    /**
+     * 暗堡
+     */
     Fort f;
+    /**
+     * 地雷
+     */
     Mine m;
 }
 
+/**
+ * 地形上墙
+ */
 class Wall {
     int x, y, w, h;
 
@@ -17,6 +33,9 @@ class Wall {
     }
 }
 
+/**
+ * 地形上的暗堡
+ */
 class Fort {
     int x, y, w, h;
 
@@ -29,6 +48,9 @@ class Fort {
 
 }
 
+/**
+ * 地形上地雷
+ */
 class Mine {
     int x, y, w, h;
 

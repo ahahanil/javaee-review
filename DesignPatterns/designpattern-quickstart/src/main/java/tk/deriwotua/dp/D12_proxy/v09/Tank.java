@@ -46,9 +46,7 @@ public class Tank implements Movable {
                 new Class[]{Movable.class}, //tank.class.getInterfaces()
                 new TimeProxy(tank)
         );
-
         m.move();
-
     }
 }
 
@@ -74,7 +72,6 @@ class TimeProxy implements InvocationHandler {
         after();
         return o;
     }
-
 }
 
 interface Movable {

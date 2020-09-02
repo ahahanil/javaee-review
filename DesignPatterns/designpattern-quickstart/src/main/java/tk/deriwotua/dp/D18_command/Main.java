@@ -3,6 +3,9 @@ package tk.deriwotua.dp.D18_command;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 封装命令模式
+ */
 public class Main {
     public static void main(String[] args) {
         Content c = new Content();
@@ -19,6 +22,9 @@ public class Main {
         deleteCommand.doit();
         deleteCommand.undo();
 
+        /**
+         * 执行一个系列命令需要先记录命令行
+         */
         List<Command> commands = new ArrayList<>();
         commands.add(new InsertCommand(c));
         commands.add(new CopyCommand(c));
@@ -27,7 +33,6 @@ public class Main {
         for(Command comm : commands) {
             comm.doit();
         }
-
 
         System.out.println(c.msg);
 

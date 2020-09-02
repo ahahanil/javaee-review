@@ -9,6 +9,10 @@ import java.util.Random;
  * 用继承？
  * v05:使用代理
  */
+
+/**
+ * 目标对象
+ */
 public class Tank implements Movable {
 
     /**
@@ -29,6 +33,9 @@ public class Tank implements Movable {
     }
 }
 
+/**
+ * 代理对象
+ */
 class TankTimeProxy implements Movable {
 
     Tank tank;
@@ -46,6 +53,9 @@ class TankTimeProxy implements Movable {
     }
 }
 
+/**
+ * 抽象对象
+ */
 interface Movable {
     void move();
 }

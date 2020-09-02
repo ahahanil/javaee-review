@@ -1,7 +1,8 @@
 package tk.deriwotua.dp.D19_prototype.v2;
 
 /**
- * 深克隆的处理
+ * 深拷贝
+ *  深拷贝时也需要对引用对象进行拷贝
  */
 public class Test {
     public static void main(String[] args) throws Exception {
@@ -13,9 +14,6 @@ public class Test {
         System.out.println(p1.loc == p2.loc);
         p1.loc.street = "sh";
         System.out.println(p2.loc);
-
-
-
     }
 }
 
@@ -27,11 +25,17 @@ class Person implements Cloneable {
     @Override
     public Object clone() throws CloneNotSupportedException {
         Person p = (Person)super.clone();
+        /**
+         * 深拷贝时也需要对引用对象进行拷贝
+         */
         p.loc = (Location)loc.clone();
         return p;
     }
 }
 
+/**
+ * 深拷贝时也需要对象引用对象进行拷贝
+ */
 class Location implements Cloneable {
     String street;
     int roomNo;

@@ -6,7 +6,7 @@ import java.util.Random;
  * 问题：我想记录坦克的移动时间
  * 最简单的办法：修改代码，记录时间
  * 问题2：如果无法改变方法源码呢？
- * 用继承？
+ * 用继承？但耦合性高
  */
 public class Tank implements Movable {
 

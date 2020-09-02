@@ -1,7 +1,5 @@
 package tk.deriwotua.dp.D12_spring.v2;
 
-
-
 import java.util.Random;
 
 /**

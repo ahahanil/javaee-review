@@ -1,7 +1,6 @@
 package tk.deriwotua.dp.D02_strategy;
 
 import java.util.Arrays;
-import java.util.Comparator;
 
 /**
  * 策略模式
@@ -14,7 +13,7 @@ import java.util.Comparator;
  *
  *  JDK中应用了策略模式接口
  *      @see java.lang.Comparable#compareTo(java.lang.Object)
- *      @see Comparator#compare(java.lang.Object, java.lang.Object)
+ *      @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
  *
  * 策略模式的重心不是如何实现算法，而是如何组织、调用这些算法，从而让程序结构更灵活，具有更好的维护性和扩展性。
  *      算法的平等性(策略算法是相同行为的不同实现)

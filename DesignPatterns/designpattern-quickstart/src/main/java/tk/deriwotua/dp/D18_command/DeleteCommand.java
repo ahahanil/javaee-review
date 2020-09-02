@@ -1,5 +1,8 @@
 package tk.deriwotua.dp.D18_command;
 
+/**
+ * 删除命令
+ */
 public class DeleteCommand extends Command {
     Content c;
     String deleted;

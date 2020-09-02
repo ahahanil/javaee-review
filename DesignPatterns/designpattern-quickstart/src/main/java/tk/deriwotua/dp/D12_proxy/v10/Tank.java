@@ -44,6 +44,9 @@ public class Tank implements Movable {
     public static void main(String[] args) {
         Tank tank = new Tank();
 
+        /**
+         * 代理生成器
+         */
         System.getProperties().put("jdk.proxy.ProxyGenerator.saveGeneratedFiles","true");
 
         Movable m = (Movable)Proxy.newProxyInstance(Tank.class.getClassLoader(),
@@ -80,7 +83,6 @@ class TimeProxy implements InvocationHandler {
         after();
         return o;
     }
-
 }
 
 interface Movable {

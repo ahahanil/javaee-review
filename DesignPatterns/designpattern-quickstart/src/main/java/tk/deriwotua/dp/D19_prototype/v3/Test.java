@@ -33,6 +33,10 @@ class Person implements Cloneable {
 }
 
 class Location implements Cloneable {
+    /**
+     * String类型引用虽然是引用但是深拷贝时不需要进行拷贝
+     *  String类型存放在常量池里本身就是共用的(字面量常量)
+     */
     String street;
     int roomNo;
 

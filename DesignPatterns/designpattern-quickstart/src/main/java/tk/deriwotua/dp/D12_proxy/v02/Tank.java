@@ -5,7 +5,8 @@ import java.util.Random;
 /**
  * 问题：我想记录坦克的移动时间
  * 最简单的办法：修改代码，记录时间
- * 问题2：如果无法改变方法源码呢？ benchmark
+ * 问题2：如果无法改变方法源码呢？
+ *  benchmark性能测试
  */
 public class Tank implements Movable {
 

@@ -2,7 +2,7 @@ package tk.deriwotua.dp.D13_Iterator.v3;
 
 
 /**
- * 相比数组，这个容器不用考虑边界问题，可以动态扩展
+ * 基于数组容器
  */
 class ArrayList_ implements Collection_ {
     Object[] objects = new Object[10];

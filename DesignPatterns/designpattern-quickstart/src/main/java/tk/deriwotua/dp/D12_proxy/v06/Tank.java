@@ -8,7 +8,7 @@ import java.util.Random;
  * 问题2：如果无法改变方法源码呢？
  * 用继承？
  * v05:使用代理
- * v06:代理有各种类型
+ * v06:代理有各种类型每种类型都搞一个代理太无聊
  * 问题：如何实现代理的各种组合？继承？Decorator?
  */
 public class Tank implements Movable {
@@ -31,6 +31,9 @@ public class Tank implements Movable {
     }
 }
 
+/**
+ * 代理对象
+ */
 class TankTimeProxy implements Movable {
     Tank tank;
     @Override
@@ -42,6 +45,9 @@ class TankTimeProxy implements Movable {
     }
 }
 
+/**
+ * 代理对象
+ */
 class TankLogProxy implements Movable {
     Tank tank;
     @Override

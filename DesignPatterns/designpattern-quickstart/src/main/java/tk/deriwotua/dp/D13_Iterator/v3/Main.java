@@ -1,9 +1,7 @@
 package tk.deriwotua.dp.D13_Iterator.v3;
 
 /**
- * v1:构建一个容器，可以添加对象
- * v2:用链表来实现一个容器
- * v3:添加容器的共同接口，实现容器的替换
+ * 添加容器的共同接口，实现容器的替换
  */
 
 public class Main {

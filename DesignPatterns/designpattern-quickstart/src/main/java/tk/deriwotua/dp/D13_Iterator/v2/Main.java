@@ -1,8 +1,7 @@
 package tk.deriwotua.dp.D13_Iterator.v2;
 
 /**
- * v1:构建一个容器，可以添加对象
- * v2:用链表来实现一个容器
+ * 用链表来实现一个容器
  */
 
 public class Main {
@@ -39,8 +38,14 @@ class LinkedList_ {
         size++;
     }
 
+    /**
+     * 节点
+     */
     private class Node {
         private Object o;
+        /**
+         * 下一个节点
+         */
         Node next;
 
         public Node(Object o) {

@@ -36,11 +36,14 @@ public class Tank implements Movable {
         TankLogProxy tlp = new TankLogProxy(ttp);
         tlp.move();
 
-//        new TankLogProxy(
-//                new TankTimeProxy(
-//                        new Tank()
-//                )
-//        ).move();
+        /**
+         * 静态代理嵌套
+         */
+        new TankLogProxy(
+                new TankTimeProxy(
+                        new Tank()
+                )
+        ).move();
     }
 }
 
