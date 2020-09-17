@@ -271,7 +271,7 @@ Spring提供了一个`RestTemplate`模板工具类，对**基于Http的客户端
       private String note;
   
   }
-  ```  
+  ```
   
 - 启动springboot项目，在项目中的测试类中直接 `@Autowired` 注入：
   ```java
@@ -1244,6 +1244,7 @@ eureka:
       prefer-ip-address: true # 更倾向于使用ip，而不是host名
   ```
   
+
 修改完后先后重启 `user-service` 和 `consumer-demo` 。在调用服务的时候就已经变成`ip`地址。需要注意的是不是在eureka中的控制台服务实例状态显示。
 
 > 服务续约
@@ -1843,6 +1844,6 @@ hystrix:
 > 上述的配置项可以参考 HystrixCommandProperties 类中。
 
 
-## 9. feign-gateway-config-bus
+# 9. feign-gateway-config-bus
 
 [feign-gateway-config-bus](./springcloud-feign-geteway-config-bus.md)

@@ -1,3 +1,5 @@
+[TOC]
+
 # 0. 学习目标
 > 能够使用Feign进行远程调用
 >
@@ -466,7 +468,9 @@ eureka:
 
 ![gateway测试](assets/gateway测试.png)
 
-##2.5. 面向服务的路由
+
+
+## 2.5. 面向服务的路由
 在刚才的路由规则中，把路径对应的服务地址写死了！如果同一服务有多个实例的话，这样做显然不合理。
 
 应该根据服务的名称，去Eureka注册中心查找 服务对应的所有实例列表，然后进行**动态路由**！
@@ -506,6 +510,7 @@ eureka:
 再次启动 `springcloud-gateway `，这次gateway进行代理时，会利用Ribbon进行负载均衡访问`http://localhost:10010/user/8`
 
 日志中可以看到使用了负载均衡器
+
 ![gateway负载均衡器](assets/gateway负载均衡器.png)
 
 ## 2.6. 路由前缀
@@ -544,6 +549,7 @@ eureka:
 - `PrefixPath=/user/abc` http://localhost:10010/8 -->http://localhost:9091/user/abc/8
 
 以此类推。可以避免暴露微服务路径
+
 
 ![路由前缀](assets/路由前缀.png)
 
@@ -618,7 +624,7 @@ spring:
       # 默认过滤器，对所有路由生效
       default-filters:
         # 响应头过滤器，对输出的响应设置其头部属性名称为X-Response-Default-MyName，值为deriwotua；如果有多个参数多则重写一行设置不同的参数
-        - AddResponseHeader=X-Response-Default-MyName, itcast
+        - AddResponseHeader=X-Response-Default-MyName, deriwotua
       routes:
         # 路由id，可以随意写
         - id: user-service-route
@@ -1109,7 +1115,7 @@ public class UserController {
 
 ## 4.2. Spring Cloud Bus简介
 `Spring Cloud Bus`是**用轻量的消息代理将分布式的节点连接起来**，可以用于**广播配置文件的更改或者服务的监控管理**。也就是**消息总线可以为微服务做监控，也可以实现应用程序之间相互通信**。
- 
+
 `Spring Cloud Bus`可选的消息代理有`RabbitMQ`和`Kafka`。
 - 使用了Bus之后
   ![springcloud-bus架构](assets/springcloud-bus架构.png)

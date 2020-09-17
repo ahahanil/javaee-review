@@ -172,6 +172,7 @@ Elasticsearch是一个接近实时的搜索平台。这意味着，从索引一�
 
 一个索引可以存储超出单个结点硬件限制的大量数据。比如，一个具有10亿文档的索引占据1TB的磁盘空间，而任一节点都没有这样大的磁盘空间；或者单个节点处理搜索请求，响应太慢。为了解决这个问题，Elasticsearch
 提供了将索引划分成多份的能力，这些份就叫做分片。当创建一个索引的时候，可以指定你想要的分片的数量。每个分片本身也是一个功能完善并且独立的“索引”，这个“索引”可以被放置到集群中的任何节点上。分片很重要，主要有两方面的原因
+
 - 允许水平分割/扩展内容容量。 
 - 允许在分片（潜在地，位于多个节点上）之上进行分布式的、并行的操作，进而提高性能/吞吐量。
 
@@ -342,12 +343,12 @@ elasticsearch-head查看：
 
 ![blog1-mapping](assets/blog1-mapping.png)
 
-###4.2.3 创建索引后设置Mapping
+### 4.2.3 创建索引后设置Mapping
 
 可以在创建索引时设置mapping信息，当然也可以先创建索引然后再设置mapping。
 
 在上一个步骤中不设置mapping信息，直接使用`put/post`方法创建一个索引，然后设置mapping信息。
-- 想上面 curl 创建的 blog索引中添加一个type名称为hello的mapping
+- 向上面 curl 创建的 blog索引中添加一个type名称为hello的mapping
 ```json
 // 格式 POST http://es主机;端口/index名称/type名称/_mapping
 // POST	http://127.0.0.1:9200/blog/hello/_mapping
