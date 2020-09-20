@@ -3220,7 +3220,10 @@ RPC 的目标就是将 2-8 这些步骤都封装起来，用户无需关心这�
   }
   ```
 
+
+
 客户端
+
 - Client Stub 作为客户端的业务处理类读取远程调用返回的数据
   ```java
   package tk.deriwotua.rpc.clientStub;
@@ -3252,6 +3255,7 @@ RPC 的目标就是将 2-8 这些步骤都封装起来，用户无需关心这�
       }
   }
   ```
+
 - 用 Netty 实现的客户端代理类，采用 Netty 自带的 `ObjectEncoder` 和 `ObjectDecoder`作为编解码器（为了降低复杂度，这里并没有使用第三方的编解码器），当然实际开发时也可以采用 JSON 或 XML。
   ```java
   package tk.deriwotua.rpc.clientStub;
@@ -3325,6 +3329,7 @@ RPC 的目标就是将 2-8 这些步骤都封装起来，用户无需关心这�
       }
   }
   ```
+
 - Client(服务的调用方-消费方)
   ```java
   /**
@@ -3376,6 +3381,10 @@ RPC 的目标就是将 2-8 这些步骤都封装起来，用户无需关心这�
 
 
 ## 拓展
+
+[锁](./Lock.md)
+
+
 
 [深入分析Synchronized原理](./深入分析Synchronized原理.md)
 
