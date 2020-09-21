@@ -10,20 +10,22 @@ import java.util.concurrent.TimeUnit;
 
 
 public class SyncSameObject {
-	
+
+	/**
+	 * 锁对象应当使用final修饰避免锁对象引用变更
+	 */
 	/*final*/ Object o = new Object();
 
 	void m() {
 		synchronized(o) {
 			while(true) {
 				try {
+					// 不会释放锁
 					TimeUnit.SECONDS.sleep(1);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 				System.out.println(Thread.currentThread().getName());
-				
-				
 			}
 		}
 	}
@@ -44,9 +46,5 @@ public class SyncSameObject {
 		t.o = new Object(); //锁对象发生改变，所以t2线程得以执行，如果注释掉这句话，线程2将永远得不到执行机会
 		
 		t2.start();
-		
 	}
-
-	
-
 }

@@ -3,12 +3,25 @@ package tk.deriwotua.juc.c_018_00_AtomicXXX;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 
-public class T03________SyncVsLongAdder {
+/**
+ * LongAdder: 50000000 time 368
+ * Sync: 50000000 time 134
+ *
+ * Process finished with exit code 0
+ *
+ * LongAdder: 500000000 time 4349
+ * Sync: 500000000 time 1764
+ *
+ * Process finished with exit code 0
+ *
+ * synchronized 偏向锁可以避免过多CAS判断操作
+ */
+public class T04_____SyncVsLongAdder {
     static long count2 = 0L;
     static LongAdder count = new LongAdder();
 
     public static void main(String[] args) throws Exception {
-        Thread[] threads = new Thread[500];
+        Thread[] threads = new Thread[5000];
 
         for(int i=0; i<threads.length; i++) {
             threads[i] =
@@ -36,11 +49,9 @@ public class T03________SyncVsLongAdder {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        /**
-                         * 这样比较 synchronized 还有提升空间 可以把 synchronized提到循环外面避免频繁获取释放锁
-                         */
-                        for(int k=0; k<100000; k++) {
-                            synchronized (lock) {
+                        synchronized (lock) {
+                            for(int k=0; k<100000; k++) {
+
                                 count2++;
                             }
                         }
@@ -58,7 +69,6 @@ public class T03________SyncVsLongAdder {
 
 
         System.out.println("Sync: " + count2 + " time " + (end-start));
-
     }
 
     static void microSleep(int m) {

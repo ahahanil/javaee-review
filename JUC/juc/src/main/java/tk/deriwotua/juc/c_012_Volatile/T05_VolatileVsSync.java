@@ -11,9 +11,20 @@ import java.util.List;
 public class T05_VolatileVsSync {
 	/*volatile*/ int count = 0;
 
-	synchronized void m() { 
+	/*synchronized void m() {
 		for (int i = 0; i < 10000; i++)
 			count++;
+	}*/
+
+	void m() {
+		/**
+		 * 存在锁粗化 循环中不断获取释放锁
+		 */
+		for (int i = 0; i < 10000; i++) {
+			synchronized (this) {
+				count++;
+			}
+		}
 	}
 
 	public static void main(String[] args) {
@@ -36,7 +47,6 @@ public class T05_VolatileVsSync {
 		});
 
 		System.out.println(t.count);
-
 	}
 
 }

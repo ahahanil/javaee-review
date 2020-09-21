@@ -15,6 +15,10 @@ import java.util.List;
  */
 public class T04_VolatileNotSync {
 	volatile int count = 0;
+
+	/**
+	 * count++ 非原子性操作
+	 */
 	void m() {
 		for(int i=0; i<10000; i++) count++;
 	}
@@ -39,8 +43,6 @@ public class T04_VolatileNotSync {
 		});
 		
 		System.out.println(t.count);
-		
-		
 	}
 	
 }

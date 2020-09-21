@@ -12,7 +12,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class T01_AtomicInteger {
 	/*volatile*/ //int count1 = 0;
-	
+
+	/**
+	 * 原子类
+	 * 访问共享资源时根据需不需要加锁可分为乐观锁、悲观锁
+	 * 	悲观锁认为在访问共享资源时会有其它线程去修改共享资源所以需要加锁存在
+	 * 	乐观锁认为在单线程访问共享资源时不会加锁，只是在修改共享资源前会判断共享资源是否发生了变更
+	 * 		底层依赖CAS比较替换算法 和 自旋
+	 */
 	AtomicInteger count = new AtomicInteger(0); 
 
 	/*synchronized*/ void m() { 
@@ -41,7 +48,6 @@ public class T01_AtomicInteger {
 		});
 
 		System.out.println(t.count);
-
 	}
 
 }

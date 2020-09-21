@@ -34,6 +34,6 @@ public class T01_ReentrantLock1 {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		//new Thread(rl::m2).start();
+		new Thread(rl::m2).start();
 	}
 }

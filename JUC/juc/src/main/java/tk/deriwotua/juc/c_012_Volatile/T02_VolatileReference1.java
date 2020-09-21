@@ -36,6 +36,9 @@ public class T02_VolatileReference1 {
             e.printStackTrace();
         }
 
+        /**
+         * 不会停止 volatile 引用类型（包括数组）只能保证引用本身的可见性，不能保证内部字段的可见性
+         */
         T.running = false;
     }
 }

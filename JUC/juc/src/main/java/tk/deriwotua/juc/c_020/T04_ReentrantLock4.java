@@ -19,13 +19,11 @@ package tk.deriwotua.juc.c_020;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Function;
 
 public class T04_ReentrantLock4 {
 		
 	public static void main(String[] args) {
 		Lock lock = new ReentrantLock();
-		
 		
 		Thread t1 = new Thread(()->{
 			try {
@@ -34,7 +32,7 @@ public class T04_ReentrantLock4 {
 				TimeUnit.SECONDS.sleep(Integer.MAX_VALUE);
 				System.out.println("t1 end");
 			} catch (InterruptedException e) {
-				System.out.println("interrupted!");
+				System.out.println("t1 interrupted!");
 			} finally {
 				lock.unlock();
 			}
@@ -49,7 +47,7 @@ public class T04_ReentrantLock4 {
 				TimeUnit.SECONDS.sleep(5);
 				System.out.println("t2 end");
 			} catch (InterruptedException e) {
-				System.out.println("interrupted!");
+				System.out.println("t2 interrupted!");
 			} finally {
 				lock.unlock();
 			}

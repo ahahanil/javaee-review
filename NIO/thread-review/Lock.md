@@ -113,6 +113,49 @@ public final int getAndAddInt(Object o, long offset, int delta) {
 
 后续JDK通过CPU的`cmpxchg`指令，去比较寄存器中的 `A` 和 内存中的值 `V`。如果相等，就把要写入的新值 `B` 存入内存中。如果不相等，就将内存值 `V` 赋值给寄存器中的值 `A`。然后通过Java代码中的`while`循环再次调用`cmpxchg`指令进行重试，直到设置成功为止。
 
+```cpp
+// JDK8 unsafe.cpp  cmpxchg = compare and exchange
+UNSAFE_ENTRY(jboolean, Unsafe_CompareAndSwapInt(JNIEnv *env, jobject unsafe, jobject obj, jlong offset, jint e, jint x))
+  UnsafeWrapper("Unsafe_CompareAndSwapInt");
+  oop p = JNIHandles::resolve(obj);
+  jint* addr = (jint *) index_oop_from_field_offset_long(p, offset);
+  return (jint)(Atomic::cmpxchg(x, addr, e)) == e;
+UNSAFE_END
+
+// JDK8 atomic_linux_x86.inline.hpp **93行
+inline jint Atomic::cmpxchg (jint exchange_value, volatile jint* dest, jint compare_value) {
+  // is_MP = Multi Processor  
+  int mp = os::is_MP();
+  __asm__ volatile (LOCK_IF_MP(%4) "cmpxchgl %1,(%3)"
+                    : "=a" (exchange_value)
+                    : "r" (exchange_value), "a" (compare_value), "r" (dest), "r" (mp)
+                    : "cc", "memory");
+  return exchange_value;
+}
+
+// JDK8 os.hpp is_MP()
+static inline bool is_MP() {
+    // During bootstrap if _processor_count is not yet initialized
+    // we claim to be MP as that is safest. If any platform has a
+    // stub generator that might be triggered in this phase and for
+    // which being declared MP when in fact not, is a problem - then
+    // the bootstrap routine for the stub generator needs to check
+    // the processor count directly and leave the bootstrap routine
+    // in place until called after initialization has ocurred.
+    return (_processor_count != 1) || AssumeMP;
+}
+
+// JDK8 atomic_linux_x86.inline.hpp
+#define LOCK_IF_MP(mp) "cmp $0, " #mp "; je 1f; lock; 1: "
+
+// 最终实现 cmpxchg = cas 修改变量值
+lock cmpxchg 指令
+```
+
+
+
+
+
 `CAS`虽然很高效，但是它也存在三大问题
 
 - `ABA`问题。`CAS`需要在操作值的时候检查内存值是否发生变化，没有发生变化才会更新内存值。但是如果内存值原来是`A`，后来变成了`B`，然后又变成了`A`，那么`CAS`进行检查时会发现值没有发生变化，但是实际上是有变化的。`ABA`问题的解决思路就是在变量前面添加版本号，每次变量更新的时候都把版本号加一，这样变化过程就从`A－B－A`变成了`1A－2B－3A`。

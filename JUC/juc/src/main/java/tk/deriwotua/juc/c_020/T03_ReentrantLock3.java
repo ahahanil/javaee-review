@@ -49,14 +49,23 @@ public class T03_ReentrantLock3 {
 		boolean locked = false;
 		
 		try {
+			// 超时时间内尝试获取锁 失败返回false 然后继续往下执行
+			// 这里 5s 足够 m1() 执行完毕释放锁
 			locked = lock.tryLock(5, TimeUnit.SECONDS);
-			System.out.println("m2 ..." + locked);
+			System.out.println("m2 ..." + locked); // true
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} finally {
 			if(locked) lock.unlock();
 		}
-		
+
+		try {
+			locked = lock.tryLock();
+			System.out.println("m2 ..." + locked); // false
+		} finally {
+			if(locked) lock.unlock();
+		}
+
 	}
 
 	public static void main(String[] args) {

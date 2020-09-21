@@ -28,6 +28,9 @@ public class T02_ReentrantLock2 {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} finally {
+			/**
+			 * 需要手动释放锁
+			 */
 			lock.unlock();
 		}
 	}

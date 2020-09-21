@@ -25,6 +25,9 @@ public class T03________VolatileReference2 {
 
         Thread reader = new Thread(()->{
             while (data == null) {}
+            /**
+             * 即使 a/b volatile 修饰也存在不一致
+             */
             int x = data.a;
             int y = data.b;
             if(x != y) {

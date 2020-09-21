@@ -22,7 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class T05_ReentrantLock5 extends Thread {
 		
-	private static ReentrantLock lock=new ReentrantLock(true); //参数为true表示为公平锁，请对比输出结果
+	private static ReentrantLock lock=new ReentrantLock(false); //参数为true表示为公平锁，请对比输出结果
     public void run() {
         for(int i=0; i<100; i++) {
             lock.lock();

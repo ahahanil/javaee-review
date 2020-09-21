@@ -8,6 +8,9 @@ package tk.deriwotua.juc.c_009;
 import java.util.concurrent.TimeUnit;
 
 public class T {
+	/**
+	 * 同步方法 锁this
+	 */
 	synchronized void m1() {
 		System.out.println("m1 start");
 		try {
@@ -15,10 +18,14 @@ public class T {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		// 可重入锁
 		m2();
 		System.out.println("m1 end");
 	}
-	
+
+	/**
+	 * 同步方法 锁this
+	 */
 	synchronized void m2() {
 		try {
 			TimeUnit.SECONDS.sleep(2);
