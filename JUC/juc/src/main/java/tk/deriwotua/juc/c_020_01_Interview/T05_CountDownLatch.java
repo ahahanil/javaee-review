@@ -77,7 +77,7 @@ public class T05_CountDownLatch {
 				System.out.println("add " + i);
 
 				if (c.size() == 5) {
-					// 打开门闩，让t2得以执行
+					// 打开门闩，让t2得以执行 但不会阻塞
 					latch.countDown();
 				}
 

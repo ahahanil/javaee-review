@@ -54,13 +54,10 @@ public class T06_LockSupport {
 		Thread t2 = new Thread(() -> {
 			System.out.println("t2启动");
 			if (c.size() != 5) {
-				// 阻塞
+				// 阻塞 初始许可为0非法消费 park() 阻塞等待 unpark() 添加一个许可
 				LockSupport.park();
-
 			}
 			System.out.println("t2 结束");
-
-
 		}, "t2");
 
 		t2.start();
@@ -78,7 +75,7 @@ public class T06_LockSupport {
 				System.out.println("add " + i);
 
 				if (c.size() == 5) {
-					// unpark
+					// unpark() 为t2线程添加一个许可 这里非阻塞的所以会继续执行
 					LockSupport.unpark(t2);
 				}
 

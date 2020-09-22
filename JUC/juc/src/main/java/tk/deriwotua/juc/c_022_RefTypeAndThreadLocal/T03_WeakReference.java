@@ -3,7 +3,7 @@ package tk.deriwotua.juc.c_022_RefTypeAndThreadLocal;
 import java.lang.ref.WeakReference;
 /**
  * 弱引用
- *  只要遭到gc就会回收
+ *  生命周期很短，不论当前内存是否充足，都只能存活到下一次垃圾收集之前
  *  通常用在容器中
  *      WeakHashMap
  *      ThreadLocal

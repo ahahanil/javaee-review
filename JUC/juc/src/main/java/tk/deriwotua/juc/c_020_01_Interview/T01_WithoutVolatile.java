@@ -10,7 +10,6 @@ package tk.deriwotua.juc.c_020_01_Interview;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 
 public class T01_WithoutVolatile {
@@ -33,11 +32,11 @@ public class T01_WithoutVolatile {
 				c.add(new Object());
 				System.out.println("add " + i);
 				
-				try {
+				/*try {
 					TimeUnit.SECONDS.sleep(1);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
-				}
+				}*/
 			}
 		}, "t1").start();
 		
@@ -51,6 +50,7 @@ public class T01_WithoutVolatile {
 				 * 	t1 线程add 后 t2 线程是不可见的并不会马上从主存中获取到
 				 * 此时可能会想到list添加 Volatile限定 执行可能结果正确但还不不能解决
 				 * 	 add 后 list更新size前 c.size()读取了大小此时数据是不准的
+				 * 	 Volatile 修饰的引用变更线程间可见但是引用指向的可见内部变更还是线程不可见的
 				 */
 				if(c.size() == 5) {
 					/**

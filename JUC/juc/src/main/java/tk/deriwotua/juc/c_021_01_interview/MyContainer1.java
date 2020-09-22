@@ -16,7 +16,6 @@ public class MyContainer1<T> {
 	final private int MAX = 10; //最多10个元素
 	private int count = 0;
 	
-	
 	public synchronized void put(T t) {
 		while(lists.size() == MAX) { //想想为什么用while而不是用if？
 			try {

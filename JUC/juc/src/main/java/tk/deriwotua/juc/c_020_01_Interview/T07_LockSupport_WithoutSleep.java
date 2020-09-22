@@ -56,7 +56,13 @@ public class T07_LockSupport_WithoutSleep {
 				System.out.println("add " + i);
 
 				if (c.size() == 5) {
+					/**
+					 * 给 t2 添加许可
+					 */
 					LockSupport.unpark(t2);
+					/**
+					 * 未获得许可时t1阻塞等待
+					 */
 					LockSupport.park();
 				}
 			}
@@ -68,8 +74,10 @@ public class T07_LockSupport_WithoutSleep {
 			 */
 			//System.out.println("t2启动");
 			//if (c.size() != 5) {
-
-				LockSupport.park();
+			/**
+			 * t2 再获取到许可时才放行
+			 */
+			LockSupport.park();
 
 			//}
 			System.out.println("t2 结束");
@@ -80,10 +88,6 @@ public class T07_LockSupport_WithoutSleep {
 
 		t2.start();
 		t1.start();
-
-
-
-
 
 	}
 }

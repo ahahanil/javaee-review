@@ -68,7 +68,7 @@ public class T03_NotifyHoldingLock { //wait notify
 					
 					if(c.size() == 5) {
 						/**
-						 * notify 并不会释放锁
+						 * notify 并不会释放锁 wait()/notify()需要配合使用
 						 */
 						lock.notify();
 					}
@@ -81,7 +81,5 @@ public class T03_NotifyHoldingLock { //wait notify
 				}
 			}
 		}, "t1").start();
-		
-		
 	}
 }

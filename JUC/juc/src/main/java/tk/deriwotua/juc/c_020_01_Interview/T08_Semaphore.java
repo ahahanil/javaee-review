@@ -3,7 +3,6 @@ package tk.deriwotua.juc.c_020_01_Interview;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.locks.LockSupport;
 
 public class T08_Semaphore {
     // 添加volatile，使t2能够得到通知
@@ -21,17 +20,25 @@ public class T08_Semaphore {
 
     public static void main(String[] args) {
         T08_Semaphore c = new T08_Semaphore();
+        /**
+         * 给定1个许可
+         * 同一时间只允许一个线程执行
+         */
         Semaphore s = new Semaphore(1);
 
         t1 = new Thread(() -> {
             try {
+                /**
+                 * 获取一个许可
+                 */
                 s.acquire();
                 for (int i = 0; i < 5; i++) {
                     c.add(new Object());
                     System.out.println("add " + i);
-
-
                 }
+                /**
+                 * 释放一个许可
+                 */
                 s.release();
             } catch (InterruptedException e) {
                 e.printStackTrace();

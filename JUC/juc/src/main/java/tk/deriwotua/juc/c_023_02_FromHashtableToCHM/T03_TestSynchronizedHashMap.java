@@ -9,6 +9,8 @@ import java.util.UUID;
  * 通过工具类可以把 HashMap 变成线程安全
  *  即拥有 HashMap 方法又是线程安全的
  *  相比较 Hashtable 锁的方法 synchronizedMap锁的是代码块锁的粒度小 效率其实并没有提高多少
+ *
+ *   都是 synchronized 独占式锁进行线程安全的并发控制
  */
 public class T03_TestSynchronizedHashMap {
 

@@ -29,7 +29,7 @@ public class T02_WithVolatile {
 	 */
 	//volatile List lists = new LinkedList();
 	/**
-	 * 同步容器
+	 * java.util.Collections.SynchronizedList 同步容器 内部方法都是通过 synchronized 加锁
 	 * 保证 list add()或size()间的同步
 	 */
 	volatile List lists = Collections.synchronizedList(new LinkedList<>());

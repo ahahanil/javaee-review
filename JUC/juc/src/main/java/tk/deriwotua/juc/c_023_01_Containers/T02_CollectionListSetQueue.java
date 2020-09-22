@@ -12,6 +12,9 @@ public class T02_CollectionListSetQueue {
 
         List<Integer> c2 = new ArrayList<>();
         Set<Integer> c3 = new HashSet<>();
+        /**
+         * LinkedList 也实现了 Deque 接口
+         */
         Queue<Integer> c4 = new LinkedList<>();
 
     }

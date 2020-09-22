@@ -4,8 +4,8 @@
  * 阅读文章：http://www.cnblogs.com/xudong-bupt/p/3433643.html
  * 
  * 更好的是采用下面的方式，既不用加锁，也能实现懒加载
- * 
- * @author 马士兵
+ *
+ * 更更好的最佳实践是通过 枚举类来首先单例模式
  */
 package tk.deriwotua.juc.c_023;
 
@@ -16,7 +16,10 @@ public class Singleton {
 	private Singleton() {
 		System.out.println("single");
 	}
-	
+
+	/**
+	 * 静态内部类静态变量由JVM保证线程安全
+	 */
 	private static class Inner {
 		private static Singleton s = new Singleton();
 	}

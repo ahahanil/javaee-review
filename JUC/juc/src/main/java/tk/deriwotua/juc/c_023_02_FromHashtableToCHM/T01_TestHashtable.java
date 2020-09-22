@@ -83,9 +83,8 @@ public class T01_TestHashtable {
         }
 
         long end = System.currentTimeMillis();
-        System.out.println("耗时：" + (end - start));
-
-        System.out.println("容器内键值对个数：" + m.size());
+        System.out.println("耗时: " + (end - start));
+        System.out.println("容器内键值对个数: " + m.size());
 
         //-----------------------------------
         /**

@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
  * Vector 自带锁list
  * 	还是存在问题 Vector#size()、Vector#Remove()单独本身是线程安全的
  * 	问题是 Vector#size()、Vector#Remove()期间如果存在逻辑是非线程安全
+ * 		方法间的逻辑非线程安全的
  */
 public class TicketSeller2 {
 	static Vector<String> tickets = new Vector<>();
