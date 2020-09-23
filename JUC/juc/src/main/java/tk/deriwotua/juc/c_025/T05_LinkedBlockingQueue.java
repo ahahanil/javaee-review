@@ -12,7 +12,8 @@ import java.util.concurrent.TimeUnit;
  * 	队列满后再添加则阻塞等待直到有空间插入
  * 	队列空后再取则阻塞等待直到能取出数据
  * 	因此 LinkedBlockingQueue 天然友好生产者&消费者模型
- * 		底层基于 LockSupport#park()阻塞、LockSupport#unpark()唤醒
+ * 		内部使用 ReentrantLock 加锁 (AQS)
+ * 			底层基于 LockSupport#park()阻塞、LockSupport#unpark()唤醒、CAS操作
  */
 public class T05_LinkedBlockingQueue {
 

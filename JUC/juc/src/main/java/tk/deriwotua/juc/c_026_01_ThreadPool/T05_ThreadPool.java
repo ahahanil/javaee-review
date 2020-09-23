@@ -18,8 +18,17 @@ import java.util.concurrent.TimeUnit;
  */
 public class T05_ThreadPool {
 	public static void main(String[] args) throws InterruptedException {
+		/**
+		 *
+		 * 		new ThreadPoolExecutor(5, 5,
+		 *                             0L, TimeUnit.MILLISECONDS,
+		 *                             new LinkedBlockingQueue<Runnable>()); // 无界阻塞队列
+		 */
 		ExecutorService service = Executors.newFixedThreadPool(5); //execute submit
 		for (int i = 0; i < 6; i++) {
+			/**
+			 * 执行任务
+			 */
 			service.execute(() -> {
 				try {
 					TimeUnit.MILLISECONDS.sleep(500);
@@ -29,12 +38,12 @@ public class T05_ThreadPool {
 				System.out.println(Thread.currentThread().getName());
 			});
 		}
-		System.out.println(service);
+		System.out.println(service); // Running
 		
 		service.shutdown();
 		System.out.println(service.isTerminated());
 		System.out.println(service.isShutdown());
-		System.out.println(service);
+		System.out.println(service);  // Shutting down
 		
 		TimeUnit.SECONDS.sleep(5);
 		System.out.println(service.isTerminated());

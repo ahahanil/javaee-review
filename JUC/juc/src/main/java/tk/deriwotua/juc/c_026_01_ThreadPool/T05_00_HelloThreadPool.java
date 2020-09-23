@@ -52,7 +52,7 @@ public class T05_00_HelloThreadPool {
          *  最大4个线程 + 等待队列可容4个任务 tpe线程池最大只能处理8个任务
          */
         ThreadPoolExecutor tpe = new ThreadPoolExecutor(
-                // 核心线程数(初始线程数) 一般参与空闲也不归还操作系统可配置参与归还逻辑
+                // 核心线程数(初始线程数) 一般即使空闲也不归还操作系统可配置参与归还逻辑
                 2,
                 // 最大线程数
                 4,
@@ -61,13 +61,14 @@ public class T05_00_HelloThreadPool {
                 /**
                  * 任务队列(可指定队列容量 这里为4)
                  * 使用不同类型的任务队列可以产生不同类型的线程池
+                 * ArrayBlockingQueue 有界阻塞队列 队满队空都阻塞
                  */
                 new ArrayBlockingQueue<Runnable>(4),
                 /**
                  * 线程工厂
                  *  可自定义特定线程工厂
                  *  默认线程工厂创建线程会指定线程名称设置为非守护线程及线程优先级
-                 *  指定线程名由于便于回溯
+                 *  指定线程名非常重要便于回溯
                  */
                 Executors.defaultThreadFactory(),
                 /**
@@ -91,9 +92,14 @@ public class T05_00_HelloThreadPool {
             tpe.execute(new Task(i));
         }
 
+        /**
+         * 线程池中只会存在4个任务在执行(线程池已满负荷)
+         */
         System.out.println(tpe.getQueue());
         /**
          * 线程池已满负荷再添加任务会触发拒绝策略
+         *  这里策略是调用者线程处理任务(这里即主线程去执行该任务)
+         *  照样会阻塞在任务里
          */
         tpe.execute(new Task(100));
 

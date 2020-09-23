@@ -18,14 +18,14 @@ public class T07_SingleThreadPool {
 		 *         return new FinalizableDelegatedExecutorService
 		 *             (new ThreadPoolExecutor(1, 1,
 		 *                                     0L, TimeUnit.MILLISECONDS,
-		 *                                     new LinkedBlockingQueue<Runnable>()));
+		 *                                     new LinkedBlockingQueue<Runnable>())); // 无界阻塞队列
 		 *     }
 		 *     SingleThreadExecutor 其实就是指定了最大1个线程永久存活(0s) 的 ThreadPoolExecutor
 		 *     然后委托给 FinalizableDelegatedExecutorService 管理
 		 *     需要注意这里指定的阻塞队列使用的默认容量 Integer.Max
 		 *     		如果真的存在这么多的线程其实CPU就只光顾着进行线程间切换了
 		 *     	Java手册中不建议使用JDK自带的API创建这种线程池
-		 *     		容量默认任意OOM
+		 *     		默认容量容易OOM
 		 *     		线程未指定名称不利于回溯
 		 */
 		ExecutorService service = Executors.newSingleThreadExecutor();

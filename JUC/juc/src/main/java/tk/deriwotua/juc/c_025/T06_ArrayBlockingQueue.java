@@ -7,6 +7,10 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * ArrayBlockingQueue 有界阻塞队列
+ * 	队列满后put()再添加则阻塞等待直到有空间插入
+ *         offer()再添加返回false 添加失败
+ *  队列空后take()再取则阻塞等待直到能取出数据
+ *         poll()返回null
  */
 public class T06_ArrayBlockingQueue {
 

@@ -18,7 +18,7 @@ public class T01_MyExecutor implements Executor{
 
 	/**
 	 * Executor 执行方法
-	 * @param command
+	 * @param command Runnable任务
 	 */
 	@Override
 	public void execute(Runnable command) {

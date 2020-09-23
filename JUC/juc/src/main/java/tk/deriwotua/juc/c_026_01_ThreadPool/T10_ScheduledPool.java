@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class T10_ScheduledPool {
 	public static void main(String[] args) {
 		/**
-		 * 4
+		 * 自定义核心线程数
 		 */
 		ScheduledExecutorService service = Executors.newScheduledThreadPool(4);
 		/**

@@ -30,7 +30,7 @@ public class T03_00_cas {
 
             for (char c : aI) {
                 /**
-                 * 如果不是 t1 阻塞等待
+                 * 如果不是 t1 自旋
                  */
                 while (r != ReadyToRun.T1) {}
                 System.out.print(c);
@@ -42,7 +42,7 @@ public class T03_00_cas {
         new Thread(() -> {
             for (char c : aC) {
                 /**
-                 * 如果不是 t2 阻塞等待
+                 * 如果不是 t2 自旋
                  */
                 while (r != ReadyToRun.T2) {}
                 System.out.print(c);

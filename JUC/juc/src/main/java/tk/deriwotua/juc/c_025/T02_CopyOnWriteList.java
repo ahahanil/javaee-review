@@ -19,6 +19,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * 	从容器中读数据时是不加锁的
  * 		不加锁原因在于新容器基于旧容器拷贝的数据一致的
  * 	往容器java.util.concurrent.CopyOnWriteArrayList#add(java.lang.Object)写数据时加锁
+ * 		synchronized
  * 		写数据时先把容器拷贝(拷贝时容量加一)然后在尾部插入要添加的元素
  * 		然后再把指向旧容器指针指向复制的这份
  *

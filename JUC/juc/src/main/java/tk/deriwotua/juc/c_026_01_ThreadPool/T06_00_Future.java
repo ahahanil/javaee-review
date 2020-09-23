@@ -17,7 +17,7 @@ public class T06_00_Future {
 		/**
 		 * 提交任务
 		 * 	submit()提交后是有返回值的所以提交 Runnable任务是不行的
-		 * 	需要是 Callable任务
+		 * 	带返回值的任务需要是 Callable任务
 		 */
 		Future<Integer> f = service.submit(() -> {
 			TimeUnit.MILLISECONDS.sleep(500);

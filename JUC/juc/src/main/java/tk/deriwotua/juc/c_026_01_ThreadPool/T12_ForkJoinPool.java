@@ -9,6 +9,8 @@ import java.util.concurrent.RecursiveTask;
 
 /**
  * ForkJoinPool 大任务切分小任务(结果可汇总)线程池
+ * 	ForkJoinPool处理的任务是需要能进行分叉的ForkJoinTask任务
+ * 		RecursiveAction 递归任务不带返回值的继承ForkJoinTask分叉任务
  */
 public class T12_ForkJoinPool {
 	/**

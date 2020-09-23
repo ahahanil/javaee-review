@@ -7,8 +7,17 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
 /**
- * DelayQueue 时间上延迟排序队列(阻塞队列)
+ * DelayQueue 时间上延迟排序队列(无界延时阻塞队列)
  * 	基于 PriorityQueue 实现时间排序常用于按时间任务调度
+ * 	队列中存放的元素必须是实现 java.util.concurrent.Delayed 接口
+ * 		且必须有一个变量声明推迟多长时间
+ *  延迟结合 PriorityQueue 优先队列
+ *  	延迟时间作为权重
+ *  	即延迟小的先出队列
+ *  take() 时先取出队首元素为空,阻塞请求
+ *  	不为空,获得这个元素的delay时间值
+ *  	为0的话,说明该元素已经到了可以使用的时间,调用poll方法弹出该元素,跳出方法
+ *  	等
  */
 public class T07_DelayQueue {
 	/**
