@@ -61,7 +61,7 @@ import java.util.UUID;
  *          HashMap#inflateTable(threshold)首先确保 capacity 为大于或等于toSize(传入的threshold)的最接近toSize的二次幂
  *          然后创建 Entry[capacity] 大小数组
  *      如果key为null，存储位置为table[0]或table[0]的冲突链上
- *          JDK8 计算数组索引下标，如果索引下标对应table[index]为null，直接插入
+ *          JDK8 哈希运算得到数组索引下标(key为null 默认哈希值为0)，如果索引下标对应table[index]为null，直接插入
  *          JDK8 不为null 时 是红黑树节点就插入红黑树；如果是链表，就使用尾插法插入链表末尾
  *      通过HashMap#hash(key) 对key的hashcode进一步计算，尽量确保散列均匀(最终获取的存储位置尽量分布均匀)得到 hash值
  *      HashMap#indexFor(hash, table.length) 获取在table中的实际位置 index

@@ -26,3 +26,7 @@
   - Strategy
   - Template Method
   - Visitor
+
+
+
+[go src](./src/main/java/tk/deriwotua/dp/Test.java)

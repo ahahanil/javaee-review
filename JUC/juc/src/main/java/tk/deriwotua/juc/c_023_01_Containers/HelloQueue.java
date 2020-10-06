@@ -7,7 +7,7 @@ import java.util.concurrent.ArrayBlockingQueue;
  * 容器
  *      Collection
  *          List
- *              CopyOnWriteList 写时复制容器
+ *              CopyOnWriteArrayList 写时复制容器
  *                  数组实现 并发安全
  *                  读写分离：读时共享、写时复制(原本的array)更新(且为独占式的加锁) JDK8使用的是ReentrantLock锁 JDK11使用的是synchronized同步代码块
  *                  添加元素时先加锁 然后数组元素拷贝到新数组(长度为旧数组+1) 最后新数组末尾元素赋值再替换掉旧数组
@@ -83,9 +83,14 @@ import java.util.concurrent.ArrayBlockingQueue;
  *                              offer()再添加返回false 添加失败
  *                      队列空后take()再取则阻塞等待直到能取出数据
  *                              poll()返回null
+ *                          内部使用 ReentrantLock 加锁 (AQS)
+ * 	                            底层基于 LockSupport#park()阻塞、LockSupport#unpark()唤醒、CAS操作
  *
  *                  PriorityBlockingQueue 无界有序的阻塞队列 继承AbstractQueue抽象队列实现BlockingQueue接口
- *
+ *                      基于数组实现
+ *                      插入时会先扩容逻辑再进行比较逻辑保障按照某个逻辑有序
+ *                          内部使用 ReentrantLock 加锁 (AQS)
+ * 	                            底层基于 LockSupport#park()阻塞、LockSupport#unpark()唤醒、CAS操作
  *                  LinkedBlockingQueue 无界阻塞队列 继承AbstractQueue抽象方法实现了BlockingQueue阻塞队列接口
  *                      实现了阻塞式put()、take()方法
  *                      队列满后put()再添加则阻塞等待直到有空间插入
@@ -99,6 +104,8 @@ import java.util.concurrent.ArrayBlockingQueue;
  *                          ConcurrentLinkedQueue、SynchronousQueue（公平模式）和 LinkedBlockingQueue 的超集
  *                          生产者会一直阻塞直到所添加到队列的元素被某一个消费者所消费
  *
+ *                          CAS操作
+ *
  *                  SynchronousQueue 无界、不存储元素的阻塞队列或栈(双栈双队列算法无空间的阻塞队列) 继承AbstractQueue抽象队列实现BlockingQueue接口
  *                      在某次put添加元素后必须等待其他线程take取走后才能继续添加反之亦然
  *                      在公平模式下
@@ -108,6 +115,7 @@ import java.util.concurrent.ArrayBlockingQueue;
  *
  *                  DelayedWorkQueue 无界延迟阻塞队列 继承AbstractQueue抽象队列实现BlockingQueue接口
  *                      主要用于线程池定时或周期任务的使用
+ *                      ReentrantLock
  *
  *              PriorityQueue 优先队列 基于二叉树排序队列 继承AbstractQueue抽象队列
  *                  PriorityQueue的底层数组实现小顶堆(任意一个非叶子节点的权值，都不大于其左右子节点的权值)

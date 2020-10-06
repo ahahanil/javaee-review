@@ -26,5 +26,5 @@
 
 [JUC](./JUC/juc/README.md)
 
-DesignPatterns
+[DesignPatterns](./DesignPatterns/designpattern-quickstart/README.md)
 

@@ -1,0 +1,40 @@
+Collection
+  List
+	  CopyOnWriteArrayList									ReentrantLock(AQS也是基于CAS + LockSupport)->synchronized
+	  Vector												synchronized
+		  Stack
+	  ArrayList												非线程安全
+	  LinkedList											非线程安全
+  Set
+	  HashSet												非线程安全
+		  LinkedHashSet										非线程安全
+	  SortedSet												非线程安全
+		  TreeSet											非线程安全		
+	  EnumSet												非线程安全
+	  CopyOnWriteArraySet					数组			ReentrantLock->synchronized
+	  ConcurrentSkipListSet					跳表			CAS
+  Queue
+	  AbstractQueue
+	  Deque
+		  ArrayDeque				有界	循环数组			非线程安全
+		  BlockingDeque
+			  LinkedBlockingDeque	有界					ReentrantLock
+	  BlockingQueue
+		  ArrayBlockingQueue		有界	数组			ReentrantLock
+		  PriorityBlockingQueue		无界	数组			ReentrantLock
+		  LinkedBlockingQueue		无界					ReentrantLock
+		  TransferQueue
+			  LinkedTransferQueue	无界					CAS + LockSupport
+		  SynchronousQueue									CAS + LockSupport
+		  DelayedWorkQueue			无界	数组			ReentrantLock
+	  PriorityQueue					有界	数组实现小顶堆	非线程安全
+	  ConcurrentLinkedQueue			无界					CAS
+	  DelayQueue					无界	数组			ReentrantLock
+Map
+  HashMap									哈希表
+	  LinkedHashMap
+  TreeMap
+  WeakHashMap
+  IdentifyHashMap
+  ConcurrentHashMap							哈希表			CAS
+  ConcurrentSkipListMap						跳表			CAS
