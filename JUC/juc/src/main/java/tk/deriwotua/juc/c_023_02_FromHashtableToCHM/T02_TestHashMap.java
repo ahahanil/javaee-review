@@ -142,6 +142,10 @@ import java.util.UUID;
  *      死循环的原因是 JDK 1.7 链表插入方式为倒序头插入，这个问题在 JDK 1.8 得到了改善，变成了尾部正序插入
  * 很多情况下是不需要考虑线程安全问题 Hashtable就不合时宜了
  *  HashMap 全不加锁
+ *
+ *  [补充](https://zhuanlan.zhihu.com/p/21673805)
+ *
+ *
  */
 public class T02_TestHashMap {
 
