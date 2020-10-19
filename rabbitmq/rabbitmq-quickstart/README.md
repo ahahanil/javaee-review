@@ -2104,5 +2104,5 @@ public class ProducerTest {
 
 # 6. rabbitmq 高级特性 
 
-[rabbitmq进阶](./rabbitmq高级特性.md))
+[rabbitmq进阶](./rabbitmq高级特性.md)
 
