@@ -150,11 +150,13 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader i
             /**
              * 获取刷新Spring上下文的Bean工厂这里即 {@link org.springframework.beans.factory.support.DefaultListableBeanFactory} 构造Bean的核心类
              *      DefaultListableBeanFactory 实现了 ConfigurableListableBeanFactory 接口
-             *      接着在{@link org.springframework.context.support.AbstractXmlApplicationContext#loadBeanDefinitions() }方法里
+             *      接着在 {@link org.springframework.context.support.AbstractXmlApplicationContext#loadBeanDefinitions() }方法里
              *          通过 DefaultListableBeanFactory 读取配置文件完成了 BeanDefinitions bean元数据加载 
+             *          需要注意因为这里是通过XML配置方式所以 BeanDefinition 加载是上面流程，如果使用了注解扫描包方式
              *              先通过扫描指定包路径下的spring注解，
              *              比如@Component、@Service、@Lazy @Sope等spring识别的注解或者是xml配置的属性(通过读取流,解析成Document，Document)
-             *              然后spring会解析这些属性，将这些属性封装到 BeanDefinition 这个接口的实现类中.
+             *              然后spring会解析这些属性，将这些属性封装到 BeanDefinition 这个接口的实现类中，
+             *              然后再注册到 DefaultListableBeanFactory 即放入beanDefinitionMap(ConcurrentHashMap类型)中
              */
             ConfigurableListableBeanFactory beanFactory = this.obtainFreshBeanFactory();
             this.prepareBeanFactory(beanFactory);
@@ -315,7 +317,7 @@ beanDefinitionNames 			| List<String> 						| 存储Bean定义名称列表  	 		
 
 #### preInstantiateSingletons初始化所有的单例Bean
 
-`org.springframework.beans.factory.support.DefaultListableBeanFactory#preInstantiateSingletons()`初始化所有的单例Bean
+`org.springframework.beans.factory.support.DefaultListableBeanFactory#preInstantiateSingletons()`初始化所有非懒加载单例Bean
 ```java
 public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFactory implements ConfigurableListableBeanFactory, BeanDefinitionRegistry, Serializable {
      public void preInstantiateSingletons() throws BeansException {
