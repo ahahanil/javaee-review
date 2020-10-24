@@ -1,7 +1,3 @@
-[TOC]
-
-
-
 ## 事务简介
 
 事务是一组原子操作单元，从数据库角度说，就是一组 SQL 指令向数据库提交，要么全部执行成功，要么撤销不执行。
@@ -166,7 +162,7 @@ ISOLATION_READ_COMMITTED（读已提交） 	    | –      | √          | √
 ISOLATION_READ_REPEATABLE_READ（可重复读）  | –      | –          | √
 ISOLATION_SERIALIZABLE（序列化） 	        | –      | –          | –
 
-## Spring 事务传播行为
+### Spring 事务传播行为
 
 [Spring 事务传播行为](http://www.mydlq.club/article/91/)
 
@@ -195,6 +191,8 @@ ISOLATION_SERIALIZABLE（序列化） 	        | –      | –          | –
 在应用系统调用声明 `@Transactional` 的目标方法时，Spring 默认使用 AOP 代理，在代码运行时生成一个代理对象，根据 `@transactional` 的属性配置信息，这个代理对象决定该声明 `@transactional` 的目标方法是否由拦截器 `TransactionInterceptor` 来使用拦截，在 `TransactionInterceptor` 拦截时，会在在目标方法开始执行之前创建并加入事务，并执行目标方法的逻辑, 最后根据执行情况是否出现异常, 进行业务事务提交或者回滚操作。
 
 ![Transactional事务实现机制](assets/Transactional事务实现机制.png)
+
+![Transactional流程](assets/Transactional流程.png)
 
 首先从`tx:annotation-driven`说起。配置了`tx:annotation-driven`，就必定有对应的标签解析器类，查看`org.springframework.beans.factory.xml.NamespaceHandler`接口的实现类，可以看到一个`org.springframework.transaction.config.TxNamespaceHandler`，它注册了`org.springframework.transaction.config.AnnotationDrivenBeanDefinitionParser`对`annotation-driven`元素进行解析
 
