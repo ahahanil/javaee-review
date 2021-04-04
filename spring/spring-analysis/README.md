@@ -1,6 +1,8 @@
 [TOC]
 
 ## Bean加载流程
+> [SPRINGBOOT启动流程及其原理](https://www.cnblogs.com/theRhyme/p/11057233.html)
+
 
 ![Spring加载bean流程](assets/Spring加载bean流程.png)
 
@@ -152,18 +154,30 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader i
              *      DefaultListableBeanFactory 实现了 ConfigurableListableBeanFactory 接口
              *      接着在 {@link org.springframework.context.support.AbstractXmlApplicationContext#loadBeanDefinitions() }方法里
              *          通过 DefaultListableBeanFactory 读取配置文件完成了 BeanDefinitions bean元数据加载 
-             *          需要注意因为这里是通过XML配置方式所以 BeanDefinition 加载是上面流程，如果使用了注解扫描包方式
-             *              先通过扫描指定包路径下的spring注解，
-             *              比如@Component、@Service、@Lazy @Sope等spring识别的注解或者是xml配置的属性(通过读取流,解析成Document，Document)
-             *              然后spring会解析这些属性，将这些属性封装到 BeanDefinition 这个接口的实现类中，
-             *              然后再注册到 DefaultListableBeanFactory 即放入beanDefinitionMap(ConcurrentHashMap类型)中
+             *          需要注意因为这里是通过XML配置方式所以 BeanDefinition 加载是上面流程，
+             *          如果使用了注解扫描包方式，则是在下面{@link org.springframework.context.support.AbstractApplicationContext#invokeBeanFactoryPostProcessors}
              */
             ConfigurableListableBeanFactory beanFactory = this.obtainFreshBeanFactory();
             this.prepareBeanFactory(beanFactory);
 
             try {
                 this.postProcessBeanFactory(beanFactory);
+                /**
+                 * 使用了注解扫描包方式时在这个方法里完成扫描解析这些属性封装到 BeanDefinition 接口实现类中然后注册到 DefaultListableBeanFactory#beanDefinitionMap
+                 *   {@link org.springframework.context.annotation.ConfigurationClassPostProcessor#processConfigBeanDefinitions}
+                 *   {@link org.springframework.context.annotation.ConfigurationClassParser#doProcessConfigurationClass}
+                 *   {@link org.springframework.context.annotation.ClassPathBeanDefinitionScanner#doScan} 扫描包
+                 *   {@link org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider#findCandidateComponents} 属性封装到 BeanDefinition
+                 *   {@link org.springframework.context.annotation.ClassPathBeanDefinitionScanner#registerBeanDefinition}
+                 *   {@link org.springframework.beans.factory.support.BeanDefinitionReaderUtils#registerBeanDefinition}
+                 *   先通过扫描指定包路径下的spring注解，
+                 *   比如@Component、@Service、@Lazy @Sope等spring识别的注解或者是xml配置的属性(通过读取流,解析成Document，Document)
+                 *   然后spring会解析这些属性，将这些属性封装到 BeanDefinition 这个接口的实现类中，
+                 *   然后再注册到 DefaultListableBeanFactory 即放入beanDefinitionMap(ConcurrentHashMap类型)中
+                 * 
+                 */ 
                 this.invokeBeanFactoryPostProcessors(beanFactory);
+                // Register bean processors that intercept bean creation
                 this.registerBeanPostProcessors(beanFactory);
                 this.initMessageSource();
                 this.initApplicationEventMulticaster();
@@ -231,7 +245,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader i
          * 抽象方法
          * AbstractRefreshableApplicationContext和GenericApplicationContext这两个子类实现了这个方法
          * 这里是 {@link org.springframework.context.support.AbstractRefreshableApplicationContext#refreshBeanFactory()}
-         *
+         * GenericApplicationContext 针对注解的方式
          */
 		refreshBeanFactory();
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
@@ -256,6 +270,7 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
 			beanFactory.setSerializationId(getId());
 			customizeBeanFactory(beanFactory);
+            // xml 配置在这里加载配置文件解析后属性封装到 BeanDefinition
 			loadBeanDefinitions(beanFactory);
 			synchronized (this.beanFactoryMonitor) {
 				this.beanFactory = beanFactory;

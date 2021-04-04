@@ -55,7 +55,7 @@ Window版的ElasticSearch的安装很简单，类似Window版的Tomcat，解压�
 
 ![es目录结构](assets/es目录结构.png)
 
-允许elasticsearch跨越访问
+允许elasticsearch跨域访问
 - 如果不安装后面的`elasticsearch-head`是可以不修改，直接启动。
 - 修改elasticsearch配置文件：`config/elasticsearch.yml`，增加以下两句命令：
 
